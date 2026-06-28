@@ -1,0 +1,265 @@
+import { useMemo, useState } from 'react';
+import { Card, parseCard, cardToString, fullDeck, shuffle } from '../engine/cards';
+import { handVsHandEquity, EquityResult } from '../engine/equity';
+import { describeScore, evaluateBest } from '../engine/evaluator';
+import { parseRange, comboCount, TOTAL_COMBOS } from '../engine/range';
+import { RFI_CHARTS, RESPONSE_CHARTS, PreflopChart } from '../gto/ranges';
+import { PUSHFOLD_TABLE, nearestPushFold, PUSHFOLD_DEPTHS } from '../gto/pushfold';
+import { RangeGrid } from './RangeGrid';
+import { CardRow } from './Card';
+
+type Mode = 'equity' | 'charts' | 'pushfold';
+
+export function SolverView() {
+  const [mode, setMode] = useState<Mode>('equity');
+  return (
+    <div className="view">
+      <div className="subtabs">
+        <button className={mode === 'equity' ? 'active' : ''} onClick={() => setMode('equity')}>
+          Hand vs Hand
+        </button>
+        <button className={mode === 'charts' ? 'active' : ''} onClick={() => setMode('charts')}>
+          Preflop Charts
+        </button>
+        <button className={mode === 'pushfold' ? 'active' : ''} onClick={() => setMode('pushfold')}>
+          Push / Fold
+        </button>
+      </div>
+      {mode === 'equity' && <EquityTool />}
+      {mode === 'charts' && <ChartsTool />}
+      {mode === 'pushfold' && <PushFoldTool />}
+    </div>
+  );
+}
+
+function tryParse(s: string): Card | null {
+  if (s.length !== 2) return null;
+  try {
+    return parseCard(s);
+  } catch {
+    return null;
+  }
+}
+
+function parseCards(s: string): Card[] | null {
+  const cleaned = s.replace(/\s+/g, '');
+  const out: Card[] = [];
+  for (let i = 0; i + 1 < cleaned.length; i += 2) {
+    const c = tryParse(cleaned.slice(i, i + 2));
+    if (c === null) return null;
+    out.push(c);
+  }
+  return out;
+}
+
+function EquityTool() {
+  const [a, setA] = useState('Ah Kh');
+  const [b, setB] = useState('Qs Qd');
+  const [boardStr, setBoardStr] = useState('');
+  const [result, setResult] = useState<EquityResult | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const compute = () => {
+    setError('');
+    const ca = parseCards(a);
+    const cb = parseCards(b);
+    const cboard = parseCards(boardStr);
+    if (!ca || ca.length !== 2) return setError('Hand A must be two cards, e.g. "Ah Kh".');
+    if (!cb || cb.length !== 2) return setError('Hand B must be two cards, e.g. "Qs Qd".');
+    if (!cboard) return setError('Board must be cards like "2c 7d 9h".');
+    if (cboard.length > 5) return setError('Board can have at most 5 cards.');
+    const all = [...ca, ...cb, ...cboard];
+    if (new Set(all).size !== all.length) return setError('Duplicate card detected.');
+    setBusy(true);
+    setTimeout(() => {
+      const res = handVsHandEquity(ca as [Card, Card], cb as [Card, Card], cboard, 30000);
+      setResult(res);
+      setBusy(false);
+    }, 10);
+  };
+
+  const dealRandom = () => {
+    const d = shuffle(fullDeck());
+    setA(`${cardToString(d[0])} ${cardToString(d[1])}`);
+    setB(`${cardToString(d[2])} ${cardToString(d[3])}`);
+    setBoardStr('');
+    setResult(null);
+  };
+
+  const ca = parseCards(a);
+  const cb = parseCards(b);
+  const cboard = parseCards(boardStr) ?? [];
+  const madeA = ca?.length === 2 && cboard.length >= 3 ? describeScore(evaluateBest([...ca, ...cboard])) : null;
+  const madeB = cb?.length === 2 && cboard.length >= 3 ? describeScore(evaluateBest([...cb, ...cboard])) : null;
+
+  return (
+    <div className="panel">
+      <h2>Hand vs Hand Equity Solver</h2>
+      <p className="muted">
+        Enter two starting hands and an optional board. Computes win/tie/lose via exact enumeration when the runout is
+        small, otherwise a 30k-hand Monte Carlo. Format: rank+suit like <code>Ah</code>, <code>Td</code>, <code>2c</code>.
+      </p>
+
+      <div className="equity-inputs">
+        <label>
+          Hand A
+          <input value={a} onChange={(e) => setA(e.target.value)} placeholder="Ah Kh" />
+          {ca?.length === 2 && <CardRow cards={ca} small />}
+        </label>
+        <span className="vs">vs</span>
+        <label>
+          Hand B
+          <input value={b} onChange={(e) => setB(e.target.value)} placeholder="Qs Qd" />
+          {cb?.length === 2 && <CardRow cards={cb} small />}
+        </label>
+        <label>
+          Board (optional)
+          <input value={boardStr} onChange={(e) => setBoardStr(e.target.value)} placeholder="2c 7d 9h" />
+          {cboard.length > 0 && <CardRow cards={cboard} small />}
+        </label>
+      </div>
+
+      <div className="btn-row">
+        <button className="primary" onClick={compute} disabled={busy}>
+          {busy ? 'Computing…' : 'Compute Equity'}
+        </button>
+        <button onClick={dealRandom}>Deal Random</button>
+      </div>
+
+      {error && <p className="error">{error}</p>}
+
+      {result && (
+        <div className="equity-result">
+          <div className="equity-bars">
+            <EquityBar label="Hand A" pct={result.equity} cls="bar-a" sub={madeA} />
+            <EquityBar label="Hand B" pct={1 - result.equity} cls="bar-b" sub={madeB} />
+          </div>
+          <table className="stats">
+            <tbody>
+              <tr>
+                <td>A equity</td>
+                <td>{(result.equity * 100).toFixed(2)}%</td>
+                <td>B equity</td>
+                <td>{((1 - result.equity) * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>A wins</td>
+                <td>{(result.win * 100).toFixed(2)}%</td>
+                <td>Tie</td>
+                <td>{(result.tie * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>Samples</td>
+                <td>{result.iterations.toLocaleString()}</td>
+                <td>Method</td>
+                <td>{result.exact ? 'Exact' : 'Monte Carlo'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EquityBar({ label, pct, cls, sub }: { label: string; pct: number; cls: string; sub?: string | null }) {
+  return (
+    <div className="equity-bar-wrap">
+      <div className="equity-bar-label">
+        {label} {sub && <span className="made">· {sub}</span>}
+      </div>
+      <div className="equity-bar-track">
+        <div className={`equity-bar-fill ${cls}`} style={{ width: `${pct * 100}%` }}>
+          {(pct * 100).toFixed(1)}%
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChartsTool() {
+  const [chart, setChart] = useState<PreflopChart>(RFI_CHARTS[0]);
+  const selected = useMemo(() => parseRange(chart.range), [chart]);
+  const combos = comboCount(selected);
+  const pct = ((combos / TOTAL_COMBOS) * 100).toFixed(1);
+
+  return (
+    <div className="panel">
+      <h2>Preflop Range Charts</h2>
+      <p className="muted">Solver-derived 6-max opening and response ranges. Green = in range.</p>
+      <div className="chart-layout">
+        <div className="chart-list">
+          <h4>Opening (RFI)</h4>
+          {RFI_CHARTS.map((c) => (
+            <button key={c.id} className={chart.id === c.id ? 'chip active' : 'chip'} onClick={() => setChart(c)}>
+              {c.title}
+            </button>
+          ))}
+          <h4>Responses</h4>
+          {RESPONSE_CHARTS.map((c) => (
+            <button key={c.id} className={chart.id === c.id ? 'chip active' : 'chip'} onClick={() => setChart(c)}>
+              {c.title}
+            </button>
+          ))}
+        </div>
+        <div className="chart-main">
+          <h3>{chart.title}</h3>
+          <p className="muted">{chart.description}</p>
+          <p className="range-stat">
+            <strong>{pct}%</strong> of hands · {combos} combos
+          </p>
+          <RangeGrid selected={selected} />
+          <details className="range-notation">
+            <summary>Range notation</summary>
+            <code>{chart.range}</code>
+          </details>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PushFoldTool() {
+  const [bb, setBb] = useState(10);
+  const entry = nearestPushFold(bb);
+  const shove = useMemo(() => parseRange(entry.sbShove), [entry]);
+  const call = useMemo(() => parseRange(entry.bbCall), [entry]);
+  const shovePct = ((comboCount(shove) / TOTAL_COMBOS) * 100).toFixed(1);
+  const callPct = ((comboCount(call) / TOTAL_COMBOS) * 100).toFixed(1);
+
+  return (
+    <div className="panel">
+      <h2>Heads-Up Push / Fold (Nash)</h2>
+      <p className="muted">
+        Pick an effective stack depth. Shows the Nash-equilibrium small-blind jam range and the big-blind calling range.
+        Snapped to the nearest charted depth ({PUSHFOLD_DEPTHS.join(', ')} BB).
+      </p>
+      <div className="slider-row">
+        <input type="range" min={1} max={20} value={bb} onChange={(e) => setBb(Number(e.target.value))} />
+        <span className="depth-badge">{bb} BB</span>
+        <span className="muted">→ chart at {entry.bb} BB</span>
+      </div>
+      <div className="pushfold-grids">
+        <div>
+          <h3>SB Shove · {shovePct}%</h3>
+          <RangeGrid selected={shove} />
+        </div>
+        <div>
+          <h3>BB Call · {callPct}%</h3>
+          <RangeGrid selected={call} />
+        </div>
+      </div>
+      <details className="range-notation">
+        <summary>Range notation</summary>
+        <p>
+          <strong>SB shove:</strong> <code>{entry.sbShove}</code>
+        </p>
+        <p>
+          <strong>BB call:</strong> <code>{entry.bbCall}</code>
+        </p>
+      </details>
+      <p className="muted small">Charted depths: {PUSHFOLD_TABLE.map((e) => e.bb).join(', ')} BB.</p>
+    </div>
+  );
+}
