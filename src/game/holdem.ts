@@ -2,6 +2,7 @@ import { Card, fullDeck, shuffle, mulberry32 } from '../engine/cards';
 import { evaluateBest } from '../engine/evaluator';
 import { Action, DecisionContext, decide } from '../bots/decision';
 import { BotProfile } from '../bots/personalities';
+import { Position } from '../gto/ranges';
 
 export type Street = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
 
@@ -17,6 +18,7 @@ export interface Player {
   folded: boolean;
   allIn: boolean;
   hasActed: boolean; // acted since last raise this street
+  mayRaise: boolean; // betting is open to this player (cleared by an incomplete all-in)
 }
 
 export interface HandConfig {
@@ -70,6 +72,7 @@ export class HoldemHand {
       folded: false,
       allIn: false,
       hasActed: false,
+      mayRaise: true,
     }));
 
     this.deal();
@@ -138,7 +141,7 @@ export class HoldemHand {
     const canCall = toCall > 0 && p.stack > 0;
     const minRaiseTo = this.currentBet + this.minRaise;
     const maxRaiseTo = p.committed + p.stack; // all-in
-    const canRaise = p.stack > toCall;
+    const canRaise = p.stack > toCall && p.mayRaise;
     return {
       canFold: toCall > 0,
       canCheck,
@@ -170,16 +173,38 @@ export class HoldemHand {
     } else if (kind === 'raise') {
       const target = Math.max(raiseTo ?? this.currentBet + this.minRaise, this.currentBet + this.minRaise);
       const capped = Math.min(target, p.committed + p.stack);
-      const raiseIncrement = capped - this.currentBet;
       const add = capped - p.committed;
       this.commit(p, add);
-      if (raiseIncrement >= this.minRaise) this.minRaise = raiseIncrement;
-      this.currentBet = Math.max(this.currentBet, p.committed);
-      this.lastAggressor = idx;
-      // everyone else must act again
-      for (const q of this.players) if (q !== p && !q.folded && !q.allIn) q.hasActed = false;
-      const verb = toCall <= 0 ? 'bets' : 'raises to';
-      this.log.push({ text: `${p.name} ${verb} ${capped}.`, kind: 'action' });
+      const raiseIncrement = capped - this.currentBet;
+
+      if (raiseIncrement <= 0) {
+        // All-in for less than a full call: an undercall, not a raise. The
+        // current bet is unchanged and the action is not reopened.
+        this.log.push({ text: `${p.name} calls ${add} and is all-in.`, kind: 'action' });
+      } else {
+        const fullRaise = raiseIncrement >= this.minRaise;
+        this.currentBet = capped;
+        this.lastAggressor = idx;
+        if (fullRaise) {
+          // A legal full raise reopens the betting for everyone behind.
+          this.minRaise = raiseIncrement;
+          for (const q of this.players) if (q !== p && !q.folded && !q.allIn) {
+            q.hasActed = false;
+            q.mayRaise = true;
+          }
+        } else {
+          // An all-in raise smaller than a full raise does NOT reopen the
+          // betting: players who already acted may call the extra or fold, but
+          // they cannot re-raise. The minimum raise is left unchanged.
+          for (const q of this.players) if (q !== p && !q.folded && !q.allIn && q.hasActed) {
+            q.hasActed = false;
+            q.mayRaise = false;
+          }
+        }
+        const verb = toCall <= 0 ? 'bets' : 'raises to';
+        const allInTag = p.allIn ? ' and is all-in' : '';
+        this.log.push({ text: `${p.name} ${verb} ${capped}${allInTag}.`, kind: 'action' });
+      }
     }
 
     p.hasActed = true;
@@ -239,6 +264,7 @@ export class HoldemHand {
     for (const p of this.players) {
       p.committed = 0;
       p.hasActed = false;
+      p.mayRaise = true;
     }
     this.currentBet = 0;
     this.minRaise = this.bigBlind;
@@ -279,6 +305,21 @@ export class HoldemHand {
 
   private boardStr(): string {
     return this.board.map((c) => cardLabel(c)).join(' ');
+  }
+
+  // Coarse table position for a seat, used to widen/narrow bot preflop ranges.
+  private positionOf(idx: number): Position {
+    const n = this.n();
+    if (n === 2) return idx === this.buttonIndex ? 'SB' : 'BB';
+    const sbIdx = (this.buttonIndex + 1) % n;
+    const bbIdx = (this.buttonIndex + 2) % n;
+    if (idx === this.buttonIndex) return 'BTN';
+    if (idx === sbIdx) return 'SB';
+    if (idx === bbIdx) return 'BB';
+    const rel = (idx - this.buttonIndex + n) % n; // 3..n-1 for the remaining seats
+    if (rel === n - 1) return 'CO';
+    if (rel === n - 2 && n >= 5) return 'MP';
+    return 'UTG';
   }
 
   private finishHand(): void {
@@ -356,6 +397,7 @@ export class HoldemHand {
     if (p.isHuman || !p.bot) return null;
 
     const toCall = this.currentBet - p.committed;
+    const legal = this.legalActions();
     const ctx: DecisionContext = {
       hole: p.hole!,
       board: this.board,
@@ -364,6 +406,9 @@ export class HoldemHand {
       stack: p.stack,
       minRaise: this.currentBet + this.minRaise,
       bigBlind: this.bigBlind,
+      position: this.positionOf(this.toActIndex),
+      facingRaise: this.street === 'preflop' && this.currentBet > this.bigBlind,
+      canRaise: legal.canRaise,
     };
     const action = decide(ctx, p.bot, this.rng);
 

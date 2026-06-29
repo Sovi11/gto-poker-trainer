@@ -161,6 +161,60 @@ export function equityVsRandomOnBoard(
   return (win + tie / 2) / total;
 }
 
+// Board-aware strength vs a specific opponent range (a list of 2-card combos)
+// rather than a uniformly random hand. This is what makes bot reads realistic:
+// by the river a villain who called two bets does NOT hold a random hand, so we
+// run our equity against a plausible *continuing* range. Combos blocked by our
+// hole cards or the board are skipped; if nothing is left we fall back to random.
+export function equityVsRangeOnBoard(
+  hole: [Card, Card],
+  board: Card[],
+  villainCombos: [Card, Card][],
+  iterations = 800,
+  seed = 9176,
+): number {
+  const dead = new Set<number>([...hole, ...board]);
+  const pool = villainCombos.filter((c) => !dead.has(c[0]) && !dead.has(c[1]));
+  if (pool.length === 0) return equityVsRandomOnBoard(hole, board, iterations, seed);
+
+  const rng = mulberry32(seed >>> 0);
+  const need = 5 - board.length;
+  let win = 0,
+    tie = 0,
+    total = 0;
+  const aCards = [hole[0], hole[1], 0, 0, 0, 0, 0];
+  const bCards = [0, 0, 0, 0, 0, 0, 0];
+
+  for (let it = 0; it < iterations; it++) {
+    const vc = pool[Math.floor(rng() * pool.length)];
+    const used = new Set<number>(dead);
+    used.add(vc[0]);
+    used.add(vc[1]);
+    // Draw the remaining board by rejection sampling (need is 0..2 postflop).
+    const runout: Card[] = [];
+    while (runout.length < need) {
+      const c = Math.floor(rng() * 52);
+      if (!used.has(c)) {
+        used.add(c);
+        runout.push(c);
+      }
+    }
+    bCards[0] = vc[0];
+    bCards[1] = vc[1];
+    const fullBoard = board.concat(runout);
+    for (let i = 0; i < 5; i++) {
+      aCards[2 + i] = fullBoard[i];
+      bCards[2 + i] = fullBoard[i];
+    }
+    const sa = evaluateBest(aCards);
+    const sb = evaluateBest(bCards);
+    if (sa > sb) win++;
+    else if (sa === sb) tie++;
+    total++;
+  }
+  return (win + tie / 2) / total;
+}
+
 // Equity of a single hand vs a random hand (used by some training drills).
 export function handVsRandomEquity(hand: [Card, Card], iterations = 20000, seed = 1234): EquityResult {
   const dead = new Set<number>(hand);

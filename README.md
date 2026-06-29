@@ -24,7 +24,10 @@ Four modules, ten lessons, with key-takeaway summaries and progress tracking:
 
 ### 🤖 Bots
 Six opponents, each with a personality profile (tightness, aggression, bluffing, call-happiness,
-tilt) and a documented leak to attack:
+tilt) and a documented leak to attack. Preflop they play **position-aware starting ranges** driven
+by that profile — the nit opens ~18% from the cutoff, the maniac ~52% — so the leaks are real and
+exploitable. Postflop they gauge their equity against a *plausible continuing range*, not a random
+hand, so their reads tighten by street.
 
 | Bot | Archetype | How to beat them |
 |-----|-----------|------------------|
@@ -54,12 +57,18 @@ npm run build    # outputs to dist/
 npm run preview  # serve the production build locally
 ```
 
+Run the tests:
+
+```bash
+npm test         # Vitest: evaluator, equity, ranges, bot ranges, betting state machine
+```
+
 ## Tech
 
-Vite · React 18 · TypeScript (strict). Hand-rolled CSS, no UI framework. The poker engine
+Vite · React 18 · TypeScript (strict) · Vitest. Hand-rolled CSS, no UI framework. The poker engine
 (card encoding, 7-card evaluator, equity, range parsing, betting state machine, bot AI) is
 pure TypeScript under `src/engine`, `src/gto`, `src/bots`, and `src/game` — UI-agnostic and
-independently testable.
+covered by a unit-test suite (`npm test`).
 
 See [CLAUDE.md](CLAUDE.md) for architecture details and contribution conventions.
 

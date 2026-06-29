@@ -27,6 +27,8 @@ npm run dev        # start Vite dev server on :5173
 npm run build      # tsc -b && vite build → dist/
 npm run preview    # preview the production build
 npm run typecheck  # tsc --noEmit
+npm test           # vitest run (engine + bot + betting unit tests)
+npm run test:watch # vitest in watch mode
 ```
 
 ## Architecture / where things live
@@ -40,8 +42,8 @@ src/
   engine/            ← pure poker math, no React
     cards.ts         · Card = int 0..51; rank/suit helpers, deck, seedable RNG (mulberry32)
     evaluator.ts     · 5- and 7-card hand evaluator → comparable integer score
-    equity.ts        · hand-vs-hand equity (exact enumeration when small, else Monte Carlo)
-                       + board-aware "equity vs random" used by the bots
+    equity.ts        · hand-vs-hand equity (exact enumeration when small, else Monte Carlo);
+                       board-aware "equity vs random" and "equity vs a continuing range"
     range.ts         · parse range notation ("99+, ATs+, KQo") → hand classes / combos;
                        the 13×13 starting-hand grid
   gto/
@@ -49,7 +51,10 @@ src/
     pushfold.ts      · heads-up Nash push/fold table by stack depth (BB)
   bots/
     personalities.ts · the 6 bots and their numeric profiles (tightness, aggression, …)
-    decision.ts      · the decision engine: context + profile → Action
+    preflopStrength.ts · Chen-formula starting-hand percentiles + top-X% range builder
+    decision.ts      · the decision engine: context + profile → Action.
+                       Preflop plays a position/personality-aware range (preflopStrength);
+                       postflop gauges equity vs a plausible continuing range.
   game/
     holdem.ts        · HoldemHand — full betting state machine (blinds, streets, side pots,
                        showdown). Bots are driven via hand.stepBot().
@@ -90,15 +95,21 @@ src/
 
 ## Testing
 
-There's no test runner wired up yet. The engine is pure and easy to test — if you add tests,
-prefer `tsx`/`node --test` over a heavy framework. Sanity anchors when changing the engine:
-`AKs vs QQ ≈ 46.4%`, `AA vs KK ≈ 82.5%`, hand-ranking order (straight flush > quads > … > high card),
-and the wheel (A-2-3-4-5) must register as a straight.
+`npm test` runs **Vitest** (`*.test.ts` next to the code under `src/`). Coverage anchors:
+- `engine/evaluator.test.ts` — hand-ranking order, kickers, the wheel (A-2-3-4-5) straight, best-5-of-7.
+- `engine/equity.test.ts` — known matchups (`AA vs KK ≈ 82%`, `AK vs AQ ≈ 73%`), exact-enumeration determinism, range awareness.
+- `engine/range.test.ts` — range-notation parsing and combo counts (full grid = 1326).
+- `bots/preflop.test.ts` — Chen scores, percentiles, and that a nit's range is strictly tighter than a maniac's.
+- `game/holdem.test.ts` — chip conservation / side pots over many auto-played hands, and the
+  incomplete-all-in re-opening rule (a short jam must not let a player who already acted re-raise).
+
+CI (`.github/workflows/ci.yml`) runs typecheck → test → build on every push/PR.
 
 ## Gotchas
 
 - `noUnusedLocals` / `noUnusedParameters` are on — dead imports break the build.
-- The bots run Monte Carlo on every decision (small iteration counts). If you add many bots or
-  speed up play, watch the main-thread cost; consider a Web Worker before cranking iterations.
+- Preflop bot decisions are a cheap percentile lookup, but **postflop** decisions run Monte Carlo
+  (small iteration counts) on the main thread. If you add many bots or speed up play, watch the
+  cost; consider a Web Worker before cranking iterations.
 - Heads-up (2 players) blind/position rules differ from 3+-handed; `postBlinds()` handles both —
   test both seat counts if you touch it.
