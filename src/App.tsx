@@ -3,11 +3,13 @@ import { SolverView } from './components/SolverView';
 import { PlayView } from './components/PlayView';
 import { LearnView } from './components/LearnView';
 import { BotsView } from './components/BotsView';
+import { DrillsView } from './components/DrillsView';
 
-type Tab = 'learn' | 'solver' | 'bots' | 'play';
+type Tab = 'learn' | 'drills' | 'solver' | 'bots' | 'play';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'learn', label: 'Learn', icon: '📚' },
+  { id: 'drills', label: 'Drills', icon: '🎯' },
   { id: 'solver', label: 'Solver', icon: '🧮' },
   { id: 'bots', label: 'Bots', icon: '🤖' },
   { id: 'play', label: 'Play', icon: '🃏' },
@@ -44,6 +46,7 @@ export default function App() {
 
       <main>
         {tab === 'learn' && <LearnView />}
+        {tab === 'drills' && <DrillsView />}
         {tab === 'solver' && <SolverView />}
         {tab === 'bots' && <BotsView onPlay={goPlay} />}
         {tab === 'play' && <PlayView initialBotId={playBot} />}

@@ -5,10 +5,19 @@ import { describeScore, evaluateBest } from '../engine/evaluator';
 import { parseRange, comboCount, TOTAL_COMBOS } from '../engine/range';
 import { RFI_CHARTS, RESPONSE_CHARTS, PreflopChart } from '../gto/ranges';
 import { PUSHFOLD_TABLE, nearestPushFold, PUSHFOLD_DEPTHS } from '../gto/pushfold';
+import {
+  requiredEquity,
+  minDefenseFrequency,
+  alpha,
+  balancedBluffFraction,
+  valueToBluffRatio,
+  spr,
+  ruleOfNEquity,
+} from '../engine/gtomath';
 import { RangeGrid } from './RangeGrid';
 import { CardRow } from './Card';
 
-type Mode = 'equity' | 'charts' | 'pushfold';
+type Mode = 'equity' | 'charts' | 'pushfold' | 'math';
 
 export function SolverView() {
   const [mode, setMode] = useState<Mode>('equity');
@@ -24,10 +33,95 @@ export function SolverView() {
         <button className={mode === 'pushfold' ? 'active' : ''} onClick={() => setMode('pushfold')}>
           Push / Fold
         </button>
+        <button className={mode === 'math' ? 'active' : ''} onClick={() => setMode('math')}>
+          GTO Math
+        </button>
       </div>
       {mode === 'equity' && <EquityTool />}
       {mode === 'charts' && <ChartsTool />}
       {mode === 'pushfold' && <PushFoldTool />}
+      {mode === 'math' && <MathTool />}
+    </div>
+  );
+}
+
+function MathTool() {
+  const [pot, setPot] = useState(100);
+  const [bet, setBet] = useState(66);
+  const [stack, setStack] = useState(400);
+  const [outs, setOuts] = useState(9);
+
+  const req = requiredEquity(pot, bet) * 100;
+  const mdf = minDefenseFrequency(pot, bet) * 100;
+  const a = alpha(pot, bet) * 100;
+  const bluff = balancedBluffFraction(pot, bet) * 100;
+  const ratio = valueToBluffRatio(pot, bet);
+  const num = (n: number, d = 1) => (Number.isFinite(n) ? n.toFixed(d) : '—');
+
+  return (
+    <div className="panel">
+      <h2>GTO Math</h2>
+      <p className="muted">
+        The formulas behind the theory, live. Change the pot and bet and watch MDF, alpha, and the balanced bluff ratio
+        move — these are the same functions the Drills tab grades you on.
+      </p>
+
+      <div className="math-inputs">
+        <label>
+          Pot (before the bet)
+          <input type="number" min={1} value={pot} onChange={(e) => setPot(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <label>
+          Bet size
+          <input type="number" min={1} value={bet} onChange={(e) => setBet(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <div className="math-presets">
+          {[0.33, 0.5, 0.66, 0.75, 1].map((f) => (
+            <button key={f} onClick={() => setBet(Math.round(pot * f))}>
+              {f === 1 ? 'pot' : `${Math.round(f * 100)}%`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="math-grid">
+        <MathStat label="Required equity to call" value={`${num(req)}%`} note="bet ÷ (pot + 2·bet)" />
+        <MathStat label="Min defence frequency (MDF)" value={`${num(mdf)}%`} note="pot ÷ (pot + bet)" />
+        <MathStat label="Alpha (bluff must work)" value={`${num(a)}%`} note="bet ÷ (pot + bet)" />
+        <MathStat label="Balanced bluff fraction" value={`${num(bluff)}%`} note="of your betting range" />
+        <MathStat label="Value : bluff" value={`${num(ratio, 2)} : 1`} note="for an unexploitable range" />
+      </div>
+
+      <div className="math-inputs">
+        <label>
+          Effective stack
+          <input type="number" min={1} value={stack} onChange={(e) => setStack(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <label>
+          Pot (for SPR)
+          <input type="number" min={1} value={pot} onChange={(e) => setPot(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <label>
+          Outs
+          <input type="number" min={0} max={20} value={outs} onChange={(e) => setOuts(Math.max(0, Number(e.target.value)))} />
+        </label>
+      </div>
+
+      <div className="math-grid">
+        <MathStat label="Stack-to-pot ratio (SPR)" value={num(spr(stack, pot), 1)} note="low SPR → commit lighter" />
+        <MathStat label="Equity by river (flop, ×4)" value={`≈ ${ruleOfNEquity(outs, 2)}%`} note={`${outs} outs, 2 to come`} />
+        <MathStat label="Equity by river (turn, ×2)" value={`≈ ${ruleOfNEquity(outs, 1)}%`} note={`${outs} outs, 1 to come`} />
+      </div>
+    </div>
+  );
+}
+
+function MathStat({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="math-stat">
+      <div className="math-stat-label">{label}</div>
+      <div className="math-stat-value">{value}</div>
+      <div className="math-stat-note">{note}</div>
     </div>
   );
 }
