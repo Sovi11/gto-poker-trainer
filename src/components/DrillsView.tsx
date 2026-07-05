@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Drill, DrillCategory, DRILL_CATEGORIES, generateDrill } from '../drills/types';
+import { Drill, DrillCategory, DRILL_CATEGORIES, drillTypesIn, generateDrill, generateDrillByType } from '../drills/types';
+import { SchedulerState, EMPTY_SCHEDULER, recordAnswer, dueType, reviewCount } from '../drills/scheduler';
 import { usePersistentState } from '../lib/usePersistentState';
 
 type Cat = DrillCategory | 'All';
@@ -24,9 +25,24 @@ export function DrillsView() {
   const [checked, setChecked] = useState(false);
   const [score, setScore] = usePersistentState<Score>('drills.score', EMPTY_SCORE);
   const [catStats, setCatStats] = usePersistentState<CategoryStats>('drills.byCategory', {});
+  const [scheduler, setScheduler] = usePersistentState<SchedulerState>('drills.scheduler', EMPTY_SCHEDULER);
+  const [isReview, setIsReview] = useState(false);
 
-  const next = (c: Cat = cat) => {
-    setDrill(generateDrill(c));
+  // Spaced repetition: a due (previously missed) type jumps the queue.
+  const pickDrill = (c: Cat, sched: SchedulerState): { drill: Drill; review: boolean } => {
+    const allowed = drillTypesIn(c).map((t) => t.id);
+    const due = dueType(sched, allowed);
+    if (due) {
+      const d = generateDrillByType(due);
+      if (d) return { drill: d, review: true };
+    }
+    return { drill: generateDrill(c), review: false };
+  };
+
+  const next = (c: Cat = cat, sched: SchedulerState = scheduler) => {
+    const picked = pickDrill(c, sched);
+    setDrill(picked.drill);
+    setIsReview(picked.review);
     setSelected(null);
     setNumInput('');
     setChecked(false);
@@ -62,11 +78,13 @@ export function DrillsView() {
       const prev = s[drill.category] ?? { correct: 0, total: 0 };
       return { ...s, [drill.category]: { correct: prev.correct + (ok ? 1 : 0), total: prev.total + 1 } };
     });
+    setScheduler((s) => recordAnswer(s, drill.typeId, ok));
   };
 
   const resetStats = () => {
     setScore(EMPTY_SCORE);
     setCatStats({});
+    setScheduler(EMPTY_SCHEDULER);
   };
 
   const ok = checked && isCorrect();
@@ -91,6 +109,7 @@ export function DrillsView() {
             <div className="drill-score-sub">
               <span className={score.streak >= 3 ? 'streak-hot' : ''}>🔥 {score.streak} streak</span>
               <span className="muted">best {score.best}</span>
+              {reviewCount(scheduler) > 0 && <span className="review-badge">🔁 {reviewCount(scheduler)} to review</span>}
             </div>
             {score.total > 0 && (
               <button className="link-btn drill-reset" onClick={resetStats}>
@@ -123,7 +142,10 @@ export function DrillsView() {
       </div>
 
       <div className="panel drill-card">
-        <div className="drill-type-tag">{drill.category}</div>
+        <div className="drill-tags">
+          <div className="drill-type-tag">{drill.category}</div>
+          {isReview && <div className="drill-review-tag">🔁 review — you missed this type before</div>}
+        </div>
         <p className="drill-prompt">{drill.prompt}</p>
 
         {drill.context.length > 0 && (

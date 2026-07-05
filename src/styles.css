@@ -1588,3 +1588,26 @@ table.stats td:nth-child(odd) {
     gap: 10px;
   }
 }
+
+/* ---------- Spaced repetition ---------- */
+.drill-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.drill-tags .drill-type-tag {
+  margin-bottom: 0;
+}
+.drill-review-tag {
+  font-size: 12px;
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.review-badge {
+  color: var(--gold);
+  font-size: 13px;
+}

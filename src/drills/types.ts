@@ -251,3 +251,9 @@ export function drillTypesIn(cat: DrillCategory | 'All'): DrillType[] {
 export function generateDrill(cat: DrillCategory | 'All', rng: () => number = Math.random): Drill {
   return pick(drillTypesIn(cat), rng).generate(rng);
 }
+
+// Generate a drill of a specific type (used by the spaced-repetition queue).
+export function generateDrillByType(typeId: string, rng: () => number = Math.random): Drill | null {
+  const type = DRILL_TYPES.find((t) => t.id === typeId);
+  return type ? type.generate(rng) : null;
+}
