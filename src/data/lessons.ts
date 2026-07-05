@@ -1262,6 +1262,316 @@ Both plays hunt the same signal: a checked-through street usually means neither 
     ],
   },
   {
+    id: 'theory',
+    title: '5 · GTO Theory & Balance',
+    summary: 'MDF, alpha, indifference, bluff ratios, and building balanced ranges.',
+    lessons: [
+      {
+        id: 'mdf-lesson',
+        title: 'Minimum defence frequency (MDF)',
+        minutes: 8,
+        body: `Minimum defence frequency answers one question: how much of my range must I continue so villain can’t profit by betting any two cards? The formula is MDF = pot / (pot + bet).
+
+If you defend less than that, villain’s pure bluffs print automatically — they can bet the worst hand in their range and show a profit, because you fold too often. MDF is the ceiling on how much you’re allowed to fold: the fold fraction is alpha = bet / (pot + bet) = 1 − MDF.
+
+One nuance: MDF is a defensive floor against a balanced or unknown bettor. Against someone who under-bluffs (a nit), you should fold *more* than MDF — that’s exploitation, which comes later. But as a baseline, defend to MDF and villain can’t bet you off the pot for free.`,
+        takeaways: [
+          'MDF = pot / (pot + bet): the minimum you must defend.',
+          'Fold more than alpha = bet / (pot + bet) and any-two-cards bets profit.',
+          'MDF is the baseline; deviate (fold more) vs players who under-bluff.',
+        ],
+        spot: {
+          scenario: 'River · villain bets two-thirds pot and you’re thinking about your whole range.',
+          heroPos: 'BB',
+          heroCards: ['As', '5s'],
+          villainPos: 'BTN',
+          board: ['Ks', '9d', '4c', '7h', '2c'],
+          pot: 100,
+          toCall: 66,
+          history: ['BTN bets 66 into 100 on the river'],
+          question: 'Against a balanced bettor, what fraction of your range must you defend?',
+          options: [
+            {
+              label: 'About 60%',
+              verdict: 'best',
+              because: 'MDF = pot / (pot + bet) = 100 / (100 + 66) ≈ 60%. Defend that much and villain’s pure bluffs can’t auto-profit.',
+            },
+            {
+              label: 'About 40%',
+              verdict: 'bad',
+              because: '40% is alpha — the fraction you’re allowed to fold, not the fraction you must defend. Defending only 40% lets any-two-cards bets print.',
+            },
+            {
+              label: 'About 50%',
+              verdict: 'bad',
+              because: '50% is the answer for a pot-sized bet. A two-thirds bet requires defending ~60%.',
+            },
+          ],
+          moral: 'MDF = pot / (pot + bet). Defend that much or a bet of any two cards shows a profit.',
+        },
+      },
+      {
+        id: 'alpha-breakeven',
+        title: 'Alpha & the break-even bluff',
+        minutes: 7,
+        body: `Alpha is the bettor’s side of MDF: how often does a bluff need to succeed to break even? The answer is alpha = bet / (pot + bet) — you’re risking your bet to win the pot, so that’s the fold frequency you need.
+
+It’s the same coin as MDF. Alpha is exactly 1 − MDF: the fraction of villain’s range that must fold for your bluff to be free money. A pot-sized bluff needs to work 50% of the time; a half-pot bluff only 33%.
+
+Bigger bluffs need to succeed more often — but they also let you fold more when you’re the one defending, and they charge draws more. That trade-off between required fold equity and pressure is the whole art of bet sizing.`,
+        takeaways: [
+          'Alpha = bet / (pot + bet): how often a bluff must work to break even.',
+          'Alpha = 1 − MDF — the bettor’s and defender’s math are one coin.',
+          'Pot bluff needs 50%, half-pot needs 33%; bigger = must work more often.',
+        ],
+        spot: {
+          scenario: 'River · your draw missed and you’re considering a pot-sized bluff.',
+          heroPos: 'BTN',
+          heroCards: ['7d', '6d'],
+          villainPos: 'BB',
+          board: ['Qc', '8s', '3d'],
+          pot: 60,
+          history: ['You have a busted hand and are thinking about firing pot'],
+          question: 'You bet pot (60) as a pure bluff. How often must it work to break even?',
+          options: [
+            {
+              label: '50%',
+              verdict: 'best',
+              because: 'Alpha = bet / (pot + bet) = 60 / (60 + 60) = 50%. You risk 60 to win 60, so a pot-sized bluff needs to fold villain out half the time.',
+            },
+            {
+              label: '33%',
+              verdict: 'bad',
+              because: '33% is the break-even for a half-pot bluff, not a pot-sized one.',
+            },
+            {
+              label: '66%',
+              verdict: 'bad',
+              because: 'That would be the requirement for a large overbet; a pot-sized bet only needs to work half the time.',
+            },
+          ],
+          moral: 'Alpha = bet / (pot + bet): a pot-sized bluff has to succeed half the time.',
+        },
+      },
+      {
+        id: 'indifference',
+        title: 'Indifference & mixed strategies',
+        minutes: 8,
+        body: `At equilibrium, players are made *indifferent* between their options. The bettor picks a bluff frequency that makes villain’s bluff-catcher break exactly even between calling and folding; the defender picks a calling frequency that makes the bettor’s bluffs break exactly even. Neither side can gain by changing.
+
+That’s why solvers *mix* — bet this hand 70% of the time, check it 30%. A pure strategy (always bet, always call) can be exploited, because the opponent can adjust to your predictability. Mixing at the indifference frequency is what makes you unexploitable.
+
+The practical takeaway: when a spot feels like a coin flip between two actions, that’s often because it *is* — you’re at an indifference point, and the equilibrium answer is a mix at the right frequency (usually your MDF), not a confident pure choice.`,
+        takeaways: [
+          'Equilibrium makes each side indifferent between their options.',
+          'Solvers mix because pure strategies can be exploited.',
+          'A close spot is often an indifference point — defend at the MDF frequency.',
+        ],
+        spot: {
+          scenario: 'River · villain bets a size that makes your bluff-catcher exactly break-even.',
+          heroPos: 'BB',
+          heroCards: ['Kd', 'Qs'],
+          villainPos: 'BTN',
+          board: ['Ac', '8d', '4s', '2c', '7h'],
+          pot: 100,
+          toCall: 100,
+          history: ['Your KQ is a pure bluff-catcher: it beats villain’s bluffs, loses to value'],
+          question: 'Call and fold have equal EV. What does GTO say to do?',
+          options: [
+            {
+              label: 'Defend at the MDF frequency (a mix)',
+              verdict: 'best',
+              because: 'Being indifferent means neither pure action is "correct" — the equilibrium play is to defend the right fraction of your bluff-catchers so villain can’t profit by bluffing more or less.',
+            },
+            {
+              label: 'Always call — it’s break-even',
+              verdict: 'bad',
+              because: 'If you always call your bluff-catchers, villain simply stops bluffing and value-bets you thinner — a pure strategy gets exploited.',
+            },
+            {
+              label: 'Always fold — save the chips',
+              verdict: 'bad',
+              because: 'Always folding lets villain bluff every time for free. Under-defending is the most common way to get exploited.',
+            },
+          ],
+          moral: 'When you’re indifferent, mixing is the point — pure strategies get exploited.',
+        },
+      },
+      {
+        id: 'value-to-bluff',
+        title: 'Value-to-bluff ratios by street',
+        minutes: 8,
+        body: `For a given bet size there’s a balanced ratio of value hands to bluffs that leaves villain indifferent to calling. On the river the classic is a pot-sized bet = 2:1 value to bluffs, so one third of your betting range is bluffs.
+
+Size changes the ratio. Bigger bets let you bluff more (an overbet can approach 1:1); smaller bets allow fewer bluffs. It also compounds backward across streets: to have enough bluffs by the river, you must have started with enough bluff combos on the flop and kept barreling the right ones — a river bluff has to have been a turn barrel first.
+
+Getting the ratio wrong is exploitable in a predictable direction: too many bluffs and villain calls everything; too few and villain folds everything. Balance is just picking the ratio that removes both edges.`,
+        takeaways: [
+          'Pot-sized river bet → 2:1 value:bluff (⅓ bluffs).',
+          'Bigger bets allow more bluffs; smaller bets allow fewer.',
+          'Ratios compound across streets — river bluffs must start as flop/turn barrels.',
+        ],
+        spot: {
+          scenario: 'River · you bet pot with a polarized range and want to stay balanced.',
+          heroPos: 'BTN',
+          heroCards: ['Ah', 'As'],
+          villainPos: 'BB',
+          board: ['Kd', '9s', '4c', '2s', '7h'],
+          pot: 90,
+          history: ['You’re betting pot on the river with a polar range (value + bluffs)'],
+          question: 'For an unexploitable pot-sized bet, what value-to-bluff ratio do you want?',
+          options: [
+            {
+              label: '2 : 1 (about ⅓ bluffs)',
+              verdict: 'best',
+              because: 'A pot-sized bet lays villain 2-to-1, so two value combos per bluff makes their bluff-catcher exactly indifferent — one third of your bets are bluffs.',
+            },
+            {
+              label: '1 : 1 (half bluffs)',
+              verdict: 'bad',
+              because: 'That over-bluffs a pot-sized bet — villain profitably calls every bluff-catcher.',
+            },
+            {
+              label: '4 : 1 (⅕ bluffs)',
+              verdict: 'bad',
+              because: 'That under-bluffs — villain profitably folds every bluff-catcher, so you leave value on the table with your bluffs.',
+            },
+          ],
+          moral: 'A pot-sized river bet wants 2:1 value:bluff; size up if you want to bluff more.',
+        },
+      },
+      {
+        id: 'range-construction',
+        title: 'Range construction & protection',
+        minutes: 8,
+        body: `Good players don’t just choose an action for a hand — they build two ranges at every node: a betting range and a checking range, each deliberately constructed so neither can be attacked.
+
+Your betting range needs bluffs so it isn’t all value (or villain just folds). Just as importantly, your checking range needs some strong hands — traps — so it isn’t all weak. If you *always* bet your good hands, then every time you check you’re capped, and a good opponent bets you off the pot relentlessly. That’s "protecting your checking range."
+
+So you distribute your nutted hands across lines: bet most of them, but slow-play a slice, and mix a few strong hands into checks. The goal is that every line you take could contain a strong hand, so none of them can be exploited.`,
+        takeaways: [
+          'Build a betting range and a checking range at every node.',
+          'Betting range needs bluffs; checking range needs some traps.',
+          'Protect your checking range — don’t always bet your strong hands.',
+        ],
+        spot: {
+          scenario: 'Flop · you’re the preflop raiser and you flop a set.',
+          heroPos: 'BTN',
+          heroCards: ['5c', '5s'],
+          villainPos: 'BB',
+          board: ['Ks', '8c', '5d'],
+          pot: 55,
+          history: ['You open, BB calls', 'Flop: K♠ 8♣ 5♦ — you flop bottom set'],
+          question: 'You have a monster. Should you always c-bet it?',
+          options: [
+            {
+              label: 'Mostly bet, but check it sometimes',
+              verdict: 'best',
+              because: 'Betting most of the time is right, but occasionally checking a set puts a strong hand in your checking range — so when you check, villain can’t just bet you off the pot.',
+            },
+            {
+              label: 'Always bet for value and protection',
+              verdict: 'ok',
+              because: 'Not a disaster, but if every strong hand always bets, your checking range is capped and exploitable — you protect it by mixing.',
+            },
+            {
+              label: 'Always check to trap',
+              verdict: 'bad',
+              because: 'Pure slow-playing forfeits value and protection on a board with obvious draws, and over-loads your checking range with monsters your bets then lack.',
+            },
+          ],
+          moral: 'Distribute strong hands across lines — a protected checking range can’t be run over.',
+        },
+      },
+      {
+        id: 'equity-realization',
+        title: 'Equity realization & playability',
+        minutes: 7,
+        body: `Raw equity is what your hand is worth at showdown; realized equity is what you actually capture, and the two are rarely equal. In position you realize *more* than your share — you see villain act, control the pot size, and fold less often to aggression. Out of position you realize less.
+
+Suitedness and connectedness do the same thing: a suited, connected hand makes flushes and straights, gives you draws to continue with, and folds less awkwardly than its offsuit twin. That’s why 76s is a profitable open where 76o is a fold from the same seat — identical raw equity, very different realization.
+
+This is the hidden variable behind range widths: in-position ranges and suited hands are wider precisely because they over-realize. When you compare two hands, ask not just "what’s my equity?" but "how much of it will I actually get?"`,
+        takeaways: [
+          'Realized equity ≠ raw equity: position and playability decide the gap.',
+          'In position you over-realize; out of position you under-realize.',
+          'Suited/connected hands realize more — why 76s plays where 76o folds.',
+        ],
+        spot: {
+          scenario: 'Preflop · comparing two versions of the same ranks from the same seat.',
+          heroPos: 'BTN',
+          heroCards: ['7s', '6s'],
+          villainPos: 'Blinds',
+          board: [],
+          pot: 15,
+          history: ['Folded to you on the button — 76s vs its offsuit twin 76o'],
+          question: 'Which realizes more equity and is more playable, 76s or 76o?',
+          options: [
+            {
+              label: '76s — suited/connected over-realizes',
+              verdict: 'best',
+              because: '76s makes flushes and straights, has draws to continue with, and folds less awkwardly — it captures far more of its equity than 76o, which is why one opens and the other often folds.',
+            },
+            {
+              label: 'They’re identical — both are 7-6',
+              verdict: 'bad',
+              because: 'That’s raw-equity thinking. The two have similar showdown equity but very different *realized* equity because of suitedness.',
+            },
+            {
+              label: '76o — offsuit realizes just as well',
+              verdict: 'bad',
+              because: 'Offsuit disconnected-ish hands realize less: fewer draws, more dominated situations, more awkward folds.',
+            },
+          ],
+          moral: 'Position and suitedness raise equity realization — that’s why suited and in-position ranges are wider.',
+        },
+      },
+      {
+        id: 'nut-vs-range-advantage',
+        title: 'Nut advantage vs range advantage',
+        minutes: 8,
+        body: `There are two different edges on a board and they don’t always travel together. Range advantage means your whole range has more equity here — more decent hands overall. Nut advantage means you hold the very top of the range — the nuts and near-nuts — more often than villain.
+
+They can point in opposite directions. On A-K-4 the preflop raiser has both. But on a low, connected board the wide caller can hold the nut advantage (sets, straights, two pair) while the raiser has neither — their overcards missed.
+
+Why it matters: nut advantage is what licenses big and overbet sizing, because you can credibly rep the top hands and your bluffs have somewhere to hide. Range advantage licenses frequent, small betting. Before you pick a size, ask which of the two edges you actually hold.`,
+        takeaways: [
+          'Range advantage = more equity overall; nut advantage = you hold the top hands more.',
+          'They can diverge — low boards can give the caller the nut advantage.',
+          'Nut advantage licenses big/overbet sizing; range advantage licenses small, frequent bets.',
+        ],
+        spot: {
+          scenario: 'Flop · you’re the big blind on a low, connected board that hits your range.',
+          heroPos: 'BB',
+          heroCards: ['Tc', '9c'],
+          villainPos: 'BTN',
+          board: ['9h', '8s', '7d'],
+          pot: 55,
+          history: ['You defend the BB, flop 9♥ 8♠ 7♦ — your range holds far more straights and sets'],
+          question: 'You hold the nut advantage on 9-8-7. What does that license?',
+          options: [
+            {
+              label: 'Lead/raise with big, polar sizing',
+              verdict: 'best',
+              because: 'Your range holds the straights, sets, and two-pair combos the button’s overcard-heavy range mostly can’t — nut advantage lets you use big sizes and overbets and credibly rep the top.',
+            },
+            {
+              label: 'Play passively — just check and call',
+              verdict: 'bad',
+              because: 'Sitting back wastes a nut advantage; the whole point is that you can apply maximum pressure with the top of your range and your bluffs.',
+            },
+            {
+              label: 'Nut advantage doesn’t affect sizing',
+              verdict: 'bad',
+              because: 'It’s exactly what licenses big/polar sizing — ignoring it leaves value and pressure on the table.',
+            },
+          ],
+          moral: 'Nut advantage licenses big, polar sizing; range advantage licenses small, frequent bets — know which you hold.',
+        },
+      },
+    ],
+  },
+  {
     id: 'exploit',
     title: '4 · Exploitation',
     summary: 'Turning reads into money by deviating from the baseline.',
