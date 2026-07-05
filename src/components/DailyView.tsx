@@ -131,7 +131,7 @@ export function DailyView({ onGoDrills }: { onGoDrills?: () => void }) {
       </div>
 
       <div className="panel drill-card">
-        <div className="drill-type-tag">{drill.category}</div>
+        <div className={`drill-type-tag cat-${drill.category.toLowerCase()}`}>{drill.category}</div>
         <p className="drill-prompt">{drill.prompt}</p>
 
         {drill.context.length > 0 && (

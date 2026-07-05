@@ -143,7 +143,7 @@ export function DrillsView() {
 
       <div className="panel drill-card">
         <div className="drill-tags">
-          <div className="drill-type-tag">{drill.category}</div>
+          <div className={`drill-type-tag cat-${drill.category.toLowerCase()}`}>{drill.category}</div>
           {isReview && <div className="drill-review-tag">🔁 review — you missed this type before</div>}
         </div>
         <p className="drill-prompt">{drill.prompt}</p>

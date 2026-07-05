@@ -5,6 +5,7 @@ import { LearnView } from './components/LearnView';
 import { BotsView } from './components/BotsView';
 import { DrillsView } from './components/DrillsView';
 import { DailyView } from './components/DailyView';
+import { useTheme } from './lib/useTheme';
 
 type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play';
 
@@ -19,6 +20,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('daily');
+  const { theme, toggle } = useTheme();
   const [playBot, setPlayBot] = useState<string | null>(null);
 
   const goPlay = (botId: string) => {
@@ -43,6 +45,14 @@ export default function App() {
               {t.label}
             </button>
           ))}
+          <button
+            className="theme-toggle"
+            onClick={toggle}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle color theme"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
         </nav>
       </header>
 
