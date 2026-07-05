@@ -1573,7 +1573,7 @@ Why it matters: nut advantage is what licenses big and overbet sizing, because y
   },
   {
     id: 'exploit',
-    title: '4 · Exploitation',
+    title: '6 · Exploitation',
     summary: 'Turning reads into money by deviating from the baseline.',
     lessons: [
       {
@@ -1597,6 +1597,452 @@ In this app: the Bots tab lists each opponent's archetype and the exploit. Play 
         ],
       },
       {
+        id: 'exploit-nit',
+        title: 'Exploiting the nit',
+        minutes: 7,
+        body: `A nit folds too much and only puts chips in with strong hands. Every part of your strategy against them flows from that one leak.
+
+Because they defend below MDF, your bluffs print regardless of your cards — c-bet every board, barrel relentlessly, and steal their blinds wide. You don’t need a hand to take pots from someone who folds too often.
+
+The other side of the exploit is discipline: when a nit shows aggression, believe them. Fold your bluff-catchers to their bets and don’t pay off their rare raises — their value range is exactly as strong as it looks.`,
+        takeaways: [
+          'Nits fold below MDF → bluff relentlessly, steal wide, c-bet everything.',
+          'When a nit bets or raises, believe them — fold bluff-catchers.',
+          'You don’t need a hand to attack someone who over-folds.',
+        ],
+        spot: {
+          scenario: 'River · you’ve barreled and a nit has just check-called down to here.',
+          heroPos: 'BTN',
+          heroCards: ['6c', '5c'],
+          villainPos: 'BB',
+          villainNote: 'Nit',
+          board: ['As', 'Kd', '7h', '3d', '9c'],
+          pot: 120,
+          history: ['You barrel flop and turn, the nit calls', 'River: 9♣ — your draw missed', 'Nit checks'],
+          question: 'You have 6-high air against a nit who over-folds. What’s best?',
+          options: [
+            {
+              label: 'Bet (bluff)',
+              verdict: 'best',
+              because: 'Nits fold too much, so a third barrel prints regardless of your cards. You’re exploiting the leak, not your hand — fire.',
+            },
+            {
+              label: 'Check (give up)',
+              verdict: 'bad',
+              because: 'Checking back Q-high against an over-folder passes up free money — the exact profit their leak hands you.',
+            },
+            {
+              label: 'Only bet if you have a made hand',
+              verdict: 'bad',
+              because: 'Waiting for a hand ignores the whole point: against someone who folds too much, your bluffs are the profit.',
+            },
+          ],
+          moral: 'Against a nit, bluff relentlessly — and believe them when they finally fight back.',
+        },
+      },
+      {
+        id: 'exploit-station',
+        title: 'Exploiting the calling station',
+        minutes: 7,
+        body: `A calling station is a nit turned inside out: they call far too much and fold far too little. So you flip your strategy — never bluff, and value bet relentlessly.
+
+Widen your value range until it hurts. Hands you’d normally check for showdown — second pair, weak top pair — become bets, because a station calls with worse often enough to make them profitable. And size up: they’re paying regardless, so charge them.
+
+The one thing you must not do is bluff. Fold equity against a station is roughly zero, so every bluff just lights money on fire. Check your air, bet your value, and let them pay you off.`,
+        takeaways: [
+          'Stations call too much → value bet thin and relentlessly, size up.',
+          'Never bluff a station — their fold equity is ~zero.',
+          'Widen value (second pair becomes a bet); check your air instead.',
+        ],
+        spot: {
+          scenario: 'River · a calling station has passively called you down and checks.',
+          heroPos: 'BTN',
+          heroCards: ['Ad', '9d'],
+          villainPos: 'BB',
+          villainNote: 'Calling station',
+          board: ['Ks', '9c', '4h', '2s', '7d'],
+          pot: 80,
+          history: ['The station check-calls flop and turn', 'River: 7♦ — you have second pair', 'Station checks'],
+          question: 'You have middle pair against a station. What’s best?',
+          options: [
+            {
+              label: 'Bet for thin value',
+              verdict: 'best',
+              because: 'A station calls with worse — ace-highs, weaker pairs, missed draws. Second pair is a clear value bet against someone who won’t fold; charge it.',
+            },
+            {
+              label: 'Check back',
+              verdict: 'bad',
+              because: 'Against a station even middle pair is ahead of their calling range — checking forfeits a bet they’d have paid.',
+            },
+            {
+              label: 'Overbet as a bluff-rep',
+              verdict: 'bad',
+              because: 'There’s no bluffing a station, and over-sizing here just folds out the worse hands you want to value bet.',
+            },
+          ],
+          moral: 'Against a station, value bet thin and never bluff — they exist to pay you off.',
+        },
+      },
+      {
+        id: 'exploit-maniac',
+        title: 'Exploiting the maniac',
+        minutes: 7,
+        body: `A maniac bets and raises far too often and bluffs too much. The instinct to fight fire with fire is exactly wrong — you beat a maniac by tightening up and letting them hang themselves.
+
+Because they over-bluff, your bluff-catchers are good more often than MDF requires, so you call down lighter than you would against a balanced player. Don’t bluff-raise them (they don’t fold); instead check-call and let them barrel into your made hands. And trap your monsters — slow-play to induce the bluffs they’re dying to fire.
+
+The mental discipline is not to get frustrated and spew back. Sit tight, pick strong hands, and cash in when their aggression runs into your value.`,
+        takeaways: [
+          'Maniacs over-bet and over-bluff → call down lighter, don’t bluff-raise.',
+          'Let them bluff into you: check-call and trap your strong hands.',
+          'Tighten up — don’t try to out-aggress a maniac.',
+        ],
+        spot: {
+          scenario: 'River · a maniac overbets after you’ve check-called with a middling hand.',
+          heroPos: 'BB',
+          heroCards: ['Kc', 'Jd'],
+          villainPos: 'BTN',
+          villainNote: 'Maniac',
+          board: ['Qs', 'Js', '6d', '4c', '2h'],
+          pot: 100,
+          toCall: 130,
+          history: ['You check-call flop and turn with second pair', 'River: 2♥', 'The maniac overbets 130 into 100'],
+          question: 'You hold second pair against a maniac’s overbet. What’s best?',
+          options: [
+            {
+              label: 'Call',
+              verdict: 'best',
+              because: 'Maniacs over-bluff, so your bluff-catcher is good more often than the price requires. Against a balanced player this is closer, but a maniac hands you a profitable call.',
+            },
+            {
+              label: 'Fold',
+              verdict: 'bad',
+              because: 'Folding bluff-catchers to a known over-bluffer is exactly the leak they profit from — you’re over-folding against someone who’s rarely got it.',
+            },
+            {
+              label: 'Raise',
+              verdict: 'bad',
+              because: 'Raising turns your bluff-catcher into a bluff and folds out the exact bluffs you beat — let them keep firing instead.',
+            },
+          ],
+          moral: 'Against a maniac, call down lighter and trap — let their aggression pay you off.',
+        },
+      },
+      {
+        id: 'population-tendencies',
+        title: 'Population tendencies & node-locking',
+        minutes: 8,
+        body: `Even with no read on a specific player, you’re not flying blind — the player pool has well-documented leaks. Most populations under-bluff rivers, over-fold to turn and river aggression, c-bet too much, and don’t check-raise enough.
+
+Node-locking is the study tool that quantifies this: you tell a solver "villain does X too often" at a decision point and it returns the maximally exploitative response. Do it enough and you internalise the standard deviations — how to punish the pool’s average mistakes.
+
+The default, then, against an unknown in a soft game isn’t pure GTO — it’s GTO nudged toward the population’s known leaks. The biggest one to remember: because the pool under-bluffs, you can profitably over-fold to big river bets.`,
+        takeaways: [
+          'The pool has known leaks even when a single villain is unknown.',
+          'Node-locking finds the max-exploit response to "villain does X too often".',
+          'Default deviation: pools under-bluff rivers → over-fold to big river bets.',
+        ],
+        spot: {
+          scenario: 'River · an unknown in a soft game fires a big bet into you.',
+          heroPos: 'BB',
+          heroCards: ['Ah', 'Qc'],
+          villainPos: 'BTN',
+          villainNote: 'Unknown',
+          board: ['Ks', 'Qd', '8c', '3s', '2d'],
+          pot: 100,
+          toCall: 90,
+          history: ['You have second pair (a bluff-catcher)', 'An unknown bets 90 into 100 on the river'],
+          question: 'No read, but you know the pool under-bluffs. How do you deviate?',
+          options: [
+            {
+              label: 'Over-fold your bluff-catchers',
+              verdict: 'best',
+              because: 'The population doesn’t have enough bluffs for a big river bet, so folding more than MDF is the profitable deviation against an unknown from that pool.',
+            },
+            {
+              label: 'Call to MDF regardless',
+              verdict: 'ok',
+              because: 'MDF is the unexploitable baseline and it’s never terrible — but it leaves EV on the table against a pool you know under-bluffs.',
+            },
+            {
+              label: 'Call wider to catch bluffs',
+              verdict: 'bad',
+              because: 'The pool bluffs too little here, so widening your calls just pays off value — you’d be exploiting a leak that doesn’t exist.',
+            },
+          ],
+          moral: 'Against unknowns in a soft pool, deviate toward known population leaks — start by over-folding to big river bets.',
+        },
+      },
+      {
+        id: 'sizing-timing-tells',
+        title: 'Sizing & timing tells',
+        minutes: 7,
+        body: `Against non-solver players, bet sizing and timing leak information that balanced play would hide. The most common recreational tell is the opposite of GTO: big means strong, small means weak. Recs polarise their sizes toward the truth — they bomb it with the nuts and dribble with air.
+
+Timing adds a second channel. A snap-bet or snap-call is often a hand that needed no thought (a medium-strength holding, a routine call); a long tank before a big bet is frequently either genuine strength being sized or a considered bluff — read it in context.
+
+Use these heavily against recreational players, who tell the truth, and cautiously against regs, who know you’re watching and can reverse-tell. Skill level decides how much to trust the tell.`,
+        takeaways: [
+          'Recs polarise sizing honestly: big = strong, small = weak.',
+          'Timing leaks too — snap actions vs long tanks carry information.',
+          'Trust tells vs recs; discount them vs regs who can reverse-tell.',
+        ],
+        spot: {
+          scenario: 'River · a passive recreational player suddenly makes a huge overbet.',
+          heroPos: 'BTN',
+          heroCards: ['Jc', 'Jd'],
+          villainPos: 'BB',
+          villainNote: 'Recreational',
+          board: ['As', '8d', '5c', '2h', '9s'],
+          pot: 100,
+          toCall: 200,
+          history: ['A passive rec who checked/called suddenly overbets 200 into 100 on the river'],
+          question: 'You hold an underpair (JJ) facing a rec’s surprise overbet. Read and play?',
+          options: [
+            {
+              label: 'Read strength — lean toward folding',
+              verdict: 'best',
+              because: 'Recreational players polarise sizing honestly: a passive player who suddenly bombs it almost always has a big hand. Your underpair is a fold against that skewed range.',
+            },
+            {
+              label: 'Treat it as a balanced polar range and bluff-catch',
+              verdict: 'bad',
+              because: 'That’s the read for a reg. A rec’s overbet isn’t balanced — it’s weighted heavily to value, so MDF logic doesn’t apply.',
+            },
+            {
+              label: 'Call — big bet means bluff',
+              verdict: 'bad',
+              because: 'The "big means bluff" reverse-tell applies to tricky regs, not passive recs, who mean exactly what their big bet says.',
+            },
+          ],
+          moral: 'Against recreational players, sizing is a tell (big = strong); against regs, don’t trust it.',
+        },
+      },
+      {
+        id: 'counter-exploitation',
+        title: 'Counter-exploitation',
+        minutes: 7,
+        body: `The moment you deviate from GTO to exploit someone, you become exploitable yourself — and a thinking opponent will eventually notice and adjust. Exploitation is a loop of adjustment and re-adjustment, not a one-time read.
+
+Calibrate to skill. Against recreational players you can exploit blatantly and forever — they don’t adjust. Against strong regs your exploits must be smaller and disguised, and you must watch for the counter: if you’ve been bluffing a reg relentlessly and they start calling you down light, they’ve adjusted, and it’s time to snap back toward value.
+
+The meta-skill is holding GTO as your anchor: deviate to attack a leak, then return toward equilibrium the instant a good opponent counters. The player who adjusts last wins the levelling war.`,
+        takeaways: [
+          'Every exploit makes you exploitable — good players counter-adjust.',
+          'Exploit recs blatantly; exploit regs subtly and watch for the counter.',
+          'When a reg counters your exploit, snap back toward value / GTO.',
+        ],
+        spot: {
+          scenario: 'A strong reg has started calling down light after you’ve bluffed them repeatedly.',
+          heroPos: 'BTN',
+          heroCards: ['Ac', 'Kd'],
+          villainPos: 'BB',
+          villainNote: 'Adjusting reg',
+          board: ['Kh', '7c', '2d', '9s', '4h'],
+          pot: 90,
+          history: ['You’ve been bluffing this reg a lot', 'They’ve started calling you down noticeably lighter', 'River: 4♥ — you have top pair, top kicker'],
+          question: 'They’ve countered your bluffing. With TPTK on the river, what’s the adjustment?',
+          options: [
+            {
+              label: 'Value bet (thin, sized to get called)',
+              verdict: 'best',
+              because: 'They counter-adjusted by calling wider, so the exploit flips: stop bluffing and get thin value from all the weaker hands they’re now calling with.',
+            },
+            {
+              label: 'Bluff again, same as before',
+              verdict: 'bad',
+              because: 'They’ve stopped folding — continuing to bluff into a widened calling range is now spew.',
+            },
+            {
+              label: 'Bet even bigger to blow them off',
+              verdict: 'bad',
+              because: 'Escalating sizing into someone who has decided to call you down just loses more; you re-adjust by switching to value, not by pressing the failing exploit harder.',
+            },
+          ],
+          moral: 'When a good opponent counters your exploit, re-adjust — exploitation is a loop, and the last to adjust wins.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'tournaments',
+    title: '7 · Tournaments, ICM & Mental Game',
+    summary: 'Survival, ICM, bubble/final-table pressure, bankroll, and the grind.',
+    lessons: [
+      {
+        id: 'tournaments-vs-cash',
+        title: 'Tournaments vs cash: what changes',
+        minutes: 7,
+        body: `Cash games are the pure form — chips equal money, you can reload, and every decision is just chip EV. Tournaments break both assumptions: chips can’t be cashed out, you can’t rebuy once you’re out, and the blinds keep rising. That gives survival its own value and forces the action.
+
+Because blinds escalate, your stack is best measured in big blinds, and strategy changes by depth. Deep, you play a normal raising game and accumulate; as you get short, postflop play shrinks and a jam-or-fold strategy takes over — roughly under 15 big blinds.
+
+The through-line is that a hand you’d comfortably open-raise-fold with 100bb in a cash game becomes a jam-or-fold decision when you’re 12bb deep in a tournament. Depth dictates everything.`,
+        takeaways: [
+          'Tournament chips can’t be cashed and you can’t reload → survival has value.',
+          'Measure stacks in big blinds; strategy changes with depth.',
+          'Under ~15bb, postflop play gives way to jam-or-fold.',
+        ],
+        spot: {
+          scenario: 'Tournament · 12 big blinds, folded to you, first-in.',
+          heroPos: 'CO',
+          heroCards: ['Ac', '7d'],
+          villainPos: 'Blinds',
+          board: [],
+          pot: 15,
+          history: ['MTT, 12bb effective, folded to you in the cutoff with A7o'],
+          question: 'At 12bb, how do you play a hand you’d open-raise-fold in a cash game?',
+          options: [
+            {
+              label: 'Jam or fold',
+              verdict: 'best',
+              because: 'At 12bb an open-raise commits a huge chunk of your stack anyway. Jamming applies maximum fold equity and avoids getting played back off your equity — A7o is a clear shove here.',
+            },
+            {
+              label: 'Min-raise, then fold to a shove',
+              verdict: 'bad',
+              because: 'Raise-folding 12bb bleeds your stack and can’t fold profitably once you’ve committed — the classic short-stack leak.',
+            },
+            {
+              label: 'Limp to see a cheap flop',
+              verdict: 'bad',
+              because: 'You can’t afford passive, postflop-heavy lines this shallow; limping surrenders fold equity and initiative.',
+            },
+          ],
+          moral: 'Shrinking stacks force push/fold — a cash-game raise-fold becomes a tournament jam.',
+        },
+      },
+      {
+        id: 'icm-basics',
+        title: 'ICM basics: chips ≠ money',
+        minutes: 8,
+        body: `The Independent Chip Model translates your chip stack into real-money equity, and the key insight is that the relationship isn’t linear. Because payouts are top-weighted and you can only win the chips others actually have, doubling your stack does *not* double your money.
+
+The consequence: losing chips costs you more dollars than winning the same number of chips earns you. Risk is penalised. That’s why, in all-in spots, you play tighter than pure chip EV suggests — a call that’s marginally +chip-EV can be clearly −$-EV once the payout structure is priced in.
+
+This effect is strongest for medium stacks near pay jumps, who have the most to lose by busting, and weakest for the big stack, who can afford the variance. ICM is the reason tournament all-ins aren’t just equity math.`,
+        takeaways: [
+          'ICM: chip stacks convert non-linearly to real money.',
+          'Losing chips costs more $ than winning the same chips earns → tighten in all-ins.',
+          'ICM pressure is highest for medium stacks near pay jumps.',
+        ],
+        spot: {
+          scenario: 'Tournament · near the money bubble, facing an all-in for your tournament life.',
+          heroPos: 'BB',
+          heroCards: ['As', 'Qd',],
+          villainPos: 'BTN',
+          board: [],
+          pot: 30,
+          history: ['Near the bubble, a shove puts you at risk', 'Your AQo is a marginal +chip-EV call'],
+          question: 'The call is +chip-EV by a hair. What does ICM say?',
+          options: [
+            {
+              label: 'Fold',
+              verdict: 'best',
+              because: 'Near the bubble, busting costs a pay jump and losing chips is worth more $ than winning them. A marginal +chip-EV spot is a clear −$-EV fold under ICM.',
+            },
+            {
+              label: 'Call — it’s +chip-EV',
+              verdict: 'bad',
+              because: 'Chip EV ignores the payout structure. The whole point of ICM is that +chip-EV and +$-EV diverge near pay jumps.',
+            },
+            {
+              label: 'Call and gamble to build a stack',
+              verdict: 'bad',
+              because: 'Gambling for chips you can’t cash out, at the moment risk is most penalised, is exactly the spot ICM tells you to avoid.',
+            },
+          ],
+          moral: 'ICM penalises risk near pay jumps — fold marginal +chip-EV all-ins.',
+        },
+      },
+      {
+        id: 'bubble-play',
+        title: 'Bubble & pay-jump play',
+        minutes: 7,
+        body: `The bubble — the last elimination before the money — is where ICM pressure peaks, and it splits the table by stack size. The big stack holds all the leverage: they can jam and raise relentlessly because their opponents can’t call without risking their entire tournament.
+
+Short and medium stacks feel the squeeze from the other side. They tighten dramatically, folding hands they’d happily stack off with in a cash game, because surviving to the money (and the next pay jump) is worth so much. The player who *can* bust is the player under pressure.
+
+So the bubble strategy is asymmetric: if you’re big, attack — print chips from people who can’t fight back. If you can bust, fold and ladder up, letting someone else bust first.`,
+        takeaways: [
+          'Bubble = peak ICM pressure; strategy splits by stack size.',
+          'Big stacks attack (opponents can’t call without risking everything).',
+          'Short/medium stacks tighten and ladder up — survival is worth pay jumps.',
+        ],
+        spot: {
+          scenario: 'Tournament · you’re the big stack on the money bubble.',
+          heroPos: 'BTN',
+          heroCards: ['Kc', 'Td'],
+          villainPos: 'Medium stacks',
+          board: [],
+          pot: 20,
+          history: ['You’re the big stack on the bubble', 'Medium stacks who’d bust by calling are yet to act'],
+          question: 'As the big stack with KTo on the bubble, what’s the best approach?',
+          options: [
+            {
+              label: 'Apply ICM pressure — raise/jam wide',
+              verdict: 'best',
+              because: 'Medium stacks can’t call without risking their tournament, so your big stack prints chips by attacking. KTo is plenty to pressure players who are forced to fold.',
+            },
+            {
+              label: 'Play snug and wait for the bubble to burst',
+              verdict: 'ok',
+              because: 'Fine for a short stack, but a big stack that sits back wastes its single biggest edge — the leverage to bully.',
+            },
+            {
+              label: 'Limp along passively',
+              verdict: 'bad',
+              because: 'Passive play surrenders the ICM leverage that makes the big stack so powerful on the bubble.',
+            },
+          ],
+          moral: 'Big stacks attack the bubble; the players who can bust must fold.',
+        },
+      },
+      {
+        id: 'final-table',
+        title: 'Final table & pay ladders',
+        minutes: 8,
+        body: `At the final table ICM reaches its most extreme, because every pay jump is large and each elimination moves real money. The stack dynamics from the bubble amplify: big stacks abuse the pressure at every elimination, short stacks fold into pay jumps, and medium stacks are the most constrained of all.
+
+Adjust your ranges to three things at once: the pay structure, the other stack sizes, and who is incentivised to fold. When there are shorter stacks likely to bust before you, laddering has enormous dollar value — a marginal call that risks your tournament is often a disastrous −$-EV play even with decent equity.
+
+The discipline is to keep translating chips into dollars. A final-table pot isn’t about winning chips; it’s about climbing the pay ladder, and folding your way up a jump can be worth more than any single pot.`,
+        takeaways: [
+          'Final-table ICM is extreme — every pay jump is large.',
+          'Medium stacks are most constrained; big stacks bully, short stacks fold up.',
+          'With shorter stacks likely to bust, folding marginal spots ladders you up.',
+        ],
+        spot: {
+          scenario: 'Final table · you’re a medium stack and a big stack jams into you.',
+          heroPos: 'CO',
+          heroCards: ['Ah', 'Jd'],
+          villainPos: 'Big stack',
+          board: [],
+          pot: 40,
+          history: ['Final table, two very short stacks still to bust', 'A big stack jams into you; you hold AJo'],
+          question: 'Decent hand, but two shorties are about to bust. Call the jam?',
+          options: [
+            {
+              label: 'Fold',
+              verdict: 'best',
+              because: 'With shorter stacks likely to bust before you, laddering has huge $ value. Risking your tournament on a marginal edge under extreme final-table ICM is a big −$-EV mistake.',
+            },
+            {
+              label: 'Call — AJo has decent equity',
+              verdict: 'bad',
+              because: 'Chip equity isn’t the question at a final table; ICM makes calling off with a marginal hand, when others may bust first, disastrous.',
+            },
+            {
+              label: 'Re-jam to apply pressure',
+              verdict: 'bad',
+              because: 'You’re the one with a tournament to lose here — piling in against a big stack who can call is the opposite of leveraging ICM.',
+            },
+          ],
+          moral: 'At the final table ICM is extreme — fold marginal spots and ladder up.',
+        },
+      },
+      {
         id: 'bankroll-tilt',
         title: 'Bankroll and tilt: the grind',
         minutes: 7,
@@ -1612,6 +2058,49 @@ Grinding is just this loop: study the baseline → play volume → review the sp
           'Judge decisions, not results — results-oriented thinking breeds tilt.',
           'The grind = study baseline → play volume → review → adjust → repeat.',
         ],
+      },
+      {
+        id: 'study-routine',
+        title: 'Building a study routine',
+        minutes: 7,
+        body: `Everything in this course only compounds if you turn it into a loop: study the baseline, play volume, review the spots you misplayed, adjust, and repeat. Skip any step and the loop breaks — theory without volume never becomes instinct, and volume without review just grooves your leaks deeper.
+
+The highest-leverage habit is honest review. Mark the hands you weren’t sure about during a session and go back to them: check them against the theory here, run the math in the Drills tab, and decide what the right play was — independent of whether the hand won. A loss you review and fix is worth more than a win you never think about.
+
+Balance the inputs. Ranges and theory sharpen your defaults; the Drills keep the math fast; playing exposes new leaks to review. Track what you get wrong, fix one thing at a time, and let the loop run. There’s no shortcut, but it compounds.`,
+        takeaways: [
+          'Improvement is a loop: study → play → review → adjust → repeat.',
+          'Review is the highest-leverage step — mark and fix your mistakes, not your results.',
+          'Balance theory, drills, and volume; fix one leak at a time.',
+        ],
+        spot: {
+          scenario: 'Review · you called a river bet last session and lost; time to learn from it.',
+          heroPos: 'BB',
+          heroCards: ['9s', '9d'],
+          villainPos: 'BTN',
+          board: ['Ks', 'Qd', '8c', '3s', '2h'],
+          pot: 100,
+          history: ['You called a big river bet with 99 and lost to value', 'Reviewing: villain almost never bluffs this spot'],
+          question: 'You lost the hand. Reviewing it, what’s the right takeaway?',
+          options: [
+            {
+              label: 'The call was a leak — fold this bluff-catcher next time',
+              verdict: 'best',
+              because: 'Review is about the decision, not the result. If villain under-bluffs here, calling is −EV regardless of this outcome — the fix is to fold this class of bluff-catcher against this bettor.',
+            },
+            {
+              label: 'Just unlucky — keep calling, it’ll even out',
+              verdict: 'bad',
+              because: 'That ignores the read. This wasn’t variance on a good call; it was a −EV call against a range with too few bluffs.',
+            },
+            {
+              label: 'Never bluff-catch again',
+              verdict: 'bad',
+              because: 'Over-correcting is its own leak — bluff-catching is profitable against balanced and over-bluffing opponents; the fix is spot-specific, not a blanket rule.',
+            },
+          ],
+          moral: 'Review converts results into adjustments — the loop is where the edge actually comes from.',
+        },
       },
     ],
   },
