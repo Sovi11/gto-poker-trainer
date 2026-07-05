@@ -1,17 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CURRICULUM, Lesson } from '../data/lessons';
+import { usePersistentState } from '../lib/usePersistentState';
 import { SpotPlayer } from './SpotPlayer';
 
 export function LearnView() {
   const [active, setActive] = useState<Lesson>(CURRICULUM[0].lessons[0]);
-  const [done, setDone] = useState<Set<string>>(new Set());
+  // Persisted as an array (JSON-friendly); exposed as a Set for lookups.
+  const [doneIds, setDoneIds] = usePersistentState<string[]>('learn.done', []);
+  const done = useMemo(() => new Set(doneIds), [doneIds]);
 
   const toggleDone = (id: string) => {
-    setDone((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setDoneIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const total = CURRICULUM.reduce((n, m) => n + m.lessons.length, 0);

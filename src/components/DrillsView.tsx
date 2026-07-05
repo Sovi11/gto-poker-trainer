@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Drill, DrillCategory, DRILL_CATEGORIES, generateDrill } from '../drills/types';
+import { usePersistentState } from '../lib/usePersistentState';
 
 type Cat = DrillCategory | 'All';
 
@@ -10,13 +11,19 @@ interface Score {
   best: number;
 }
 
+// Per-category accuracy, persisted — the raw data for leak detection.
+type CategoryStats = Record<string, { correct: number; total: number }>;
+
+const EMPTY_SCORE: Score = { correct: 0, total: 0, streak: 0, best: 0 };
+
 export function DrillsView() {
   const [cat, setCat] = useState<Cat>('All');
   const [drill, setDrill] = useState<Drill>(() => generateDrill('All'));
   const [selected, setSelected] = useState<number | null>(null);
   const [numInput, setNumInput] = useState('');
   const [checked, setChecked] = useState(false);
-  const [score, setScore] = useState<Score>({ correct: 0, total: 0, streak: 0, best: 0 });
+  const [score, setScore] = usePersistentState<Score>('drills.score', EMPTY_SCORE);
+  const [catStats, setCatStats] = usePersistentState<CategoryStats>('drills.byCategory', {});
 
   const next = (c: Cat = cat) => {
     setDrill(generateDrill(c));
@@ -51,6 +58,15 @@ export function DrillsView() {
       const streak = ok ? s.streak + 1 : 0;
       return { correct: s.correct + (ok ? 1 : 0), total: s.total + 1, streak, best: Math.max(s.best, streak) };
     });
+    setCatStats((s) => {
+      const prev = s[drill.category] ?? { correct: 0, total: 0 };
+      return { ...s, [drill.category]: { correct: prev.correct + (ok ? 1 : 0), total: prev.total + 1 } };
+    });
+  };
+
+  const resetStats = () => {
+    setScore(EMPTY_SCORE);
+    setCatStats({});
   };
 
   const ok = checked && isCorrect();
@@ -76,6 +92,11 @@ export function DrillsView() {
               <span className={score.streak >= 3 ? 'streak-hot' : ''}>🔥 {score.streak} streak</span>
               <span className="muted">best {score.best}</span>
             </div>
+            {score.total > 0 && (
+              <button className="link-btn drill-reset" onClick={resetStats}>
+                reset stats
+              </button>
+            )}
           </div>
         </div>
 
@@ -86,6 +107,19 @@ export function DrillsView() {
             </button>
           ))}
         </div>
+
+        {Object.keys(catStats).length > 0 && (
+          <div className="drill-cat-stats">
+            {Object.entries(catStats).map(([name, s]) => {
+              const acc = Math.round((s.correct / s.total) * 100);
+              return (
+                <span key={name} className={`cat-stat ${acc < 60 ? 'weak' : acc >= 85 ? 'strong' : ''}`}>
+                  {name} {acc}% <span className="muted">({s.total})</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="panel drill-card">
