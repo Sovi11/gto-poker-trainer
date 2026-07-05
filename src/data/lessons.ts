@@ -64,6 +64,36 @@ In this app: the Solver tab shows you equilibrium-ish ranges and exact hand-vs-h
           'Exploitative play = deviating from GTO to punish a specific leak.',
           'Learn the baseline first so you can recognize and attack mistakes.',
         ],
+        spot: {
+          scenario: 'River · first orbit against a total unknown; he bets pot into you.',
+          heroPos: 'BB',
+          heroCards: ['Ks', 'Jh'],
+          villainPos: 'BTN',
+          villainNote: 'Unknown',
+          board: ['Kd', '8c', '5s', '3d', '9h'],
+          pot: 100,
+          toCall: 100,
+          history: ['Zero reads — you’ve never seen this player before', 'You check-call flop and turn with top pair', 'River: BTN bets 100 (pot)'],
+          question: 'No reads at all. What framework decides this call?',
+          options: [
+            {
+              label: 'Play the GTO baseline — this hand defends (call)',
+              verdict: 'best',
+              because: 'Against an unknown there’s nothing to exploit yet, so you fall back on the unexploitable baseline: defend enough bluff-catchers that his bluffs can’t print. Top pair is comfortably inside that defending region.',
+            },
+            {
+              label: 'Fold — assume a pot-sized bet is the nuts until proven otherwise',
+              verdict: 'bad',
+              because: 'That’s inventing a read you don’t have. A default over-folder is instantly exploitable — any aggressive villain prints by bluffing you from hand one.',
+            },
+            {
+              label: 'Call every time, always — he could be bluffing',
+              verdict: 'bad',
+              because: 'Always-call is exploitable in the opposite direction: value bets rake you endlessly. The baseline is a frequency, not a rule of thumb.',
+            },
+          ],
+          moral: 'Versus unknowns, play the unexploitable baseline — deviate only once you have an actual read.',
+        },
       },
       {
         id: 'equity-and-odds',
@@ -364,6 +394,34 @@ In this app: the Solver → Preflop Charts tab shows position-by-position openin
           'Open tighter early (UTG ~15%), wider late (BTN ~45%).',
           'IP you over-realize equity; OOP you under-realize it.',
         ],
+        spot: {
+          scenario: 'Preflop · 6-max, you’re first to act under the gun with a hand you’d open on the button.',
+          heroPos: 'UTG',
+          heroCards: ['7s', '6s'],
+          villainPos: '5 players behind',
+          board: [],
+          pot: 15,
+          history: ['6-max, 100bb deep, you’re under the gun', 'On the button you’d open this hand without thinking'],
+          question: '76s UTG — same cards you’d happily open on the BTN. Now what?',
+          options: [
+            {
+              label: 'Fold',
+              verdict: 'best',
+              because: 'With five players behind and the worst position all hand, 76s under-realises its equity badly — it needs position to pay off. The seat, not the cards, makes this decision.',
+            },
+            {
+              label: 'Open-raise',
+              verdict: 'bad',
+              because: 'Out of position against five unknown hands, a small suited connector wins less than it costs long-run — this is exactly the marginal open that position is supposed to filter out.',
+            },
+            {
+              label: 'Limp and see a flop',
+              verdict: 'bad',
+              because: 'Limping UTG surrenders initiative, invites raises behind, and commits you to playing a weak hand out of position — the worst of all options.',
+            },
+          ],
+          moral: 'Position decides marginal hands: 76s is a fold UTG and a standard open on the button.',
+        },
       },
       {
         id: 'rfi-ranges',
@@ -385,6 +443,34 @@ In this app: open the Solver → Preflop Charts, pick a position, and study the 
           'Memorize the edges of each range, not every combo.',
           'Suited hands outrank their offsuit twins for playability.',
         ],
+        spot: {
+          scenario: 'Preflop · 6-max, under the gun, and you look down at a pretty ace.',
+          heroPos: 'UTG',
+          heroCards: ['As', 'Td'],
+          villainPos: '5 players behind',
+          board: [],
+          pot: 15,
+          history: ['6-max, 100bb, folded to you under the gun'],
+          question: 'ATo under the gun. Is it in the opening range?',
+          options: [
+            {
+              label: 'Fold',
+              verdict: 'best',
+              because: 'ATo sits just outside a standard UTG range (AJo+ opens; ATs opens but ATo doesn’t). When it gets called it’s often dominated by AJ–AK and plays out of position all hand — the classic edge-of-range trap.',
+            },
+            {
+              label: 'Open-raise',
+              verdict: 'bad',
+              because: 'Opening every good-looking offsuit ace from early position is one of the most common preflop leaks — the offsuit aces below AJo bleed from UTG.',
+            },
+            {
+              label: 'Limp',
+              verdict: 'bad',
+              because: 'If a hand isn’t strong enough to open from a seat, it isn’t strong enough to limp there either — raise or fold.',
+            },
+          ],
+          moral: 'Memorize the edges: UTG opens AJo+ — ATo is the fold right below the edge (while ATs opens).',
+        },
       },
       {
         id: 'three-betting',
@@ -586,6 +672,34 @@ In this app: Solver → Push/Fold lets you pick an effective stack in BB and see
           'Shorter stack → wider jams; deeper → tighter.',
           'Memorizing Nash push/fold is the best tournament study ROI.',
         ],
+        spot: {
+          scenario: 'Tournament · 8 big blinds in the small blind, folded to you.',
+          heroPos: 'SB',
+          heroCards: ['Kc', '8d'],
+          villainPos: 'BB',
+          board: [],
+          pot: 15,
+          history: ['8bb effective', 'Everyone folds to your small blind'],
+          question: 'K8o at 8bb, first-in from the SB. What does the chart say?',
+          options: [
+            {
+              label: 'Jam (all-in)',
+              verdict: 'best',
+              because: 'K8o is inside the 8bb Nash SB shove range (K8o+). The jam profits from fold equity plus live equity when called — trust the solved chart over the "it’s only king-eight" instinct.',
+            },
+            {
+              label: 'Fold',
+              verdict: 'bad',
+              because: 'Folding hands the Nash range jams burns EV precisely when you can least afford it — at 8bb you can’t wait for premiums.',
+            },
+            {
+              label: 'Min-raise, fold to a shove',
+              verdict: 'bad',
+              because: 'A small raise commits chips without the jam’s fold equity and lets the BB shove you off your hand — at this depth it’s jam-or-fold.',
+            },
+          ],
+          moral: 'Short-stack spots are solved — look up the depth, and jam what the chart jams.',
+        },
       },
       {
         id: 'preflop-sizing',
@@ -2043,21 +2157,91 @@ The discipline is to keep translating chips into dollars. A final-table pot isn�
         },
       },
       {
-        id: 'bankroll-tilt',
-        title: 'Bankroll and tilt: the grind',
+        id: 'bankroll',
+        title: 'Bankroll management',
         minutes: 7,
-        body: `Skill decides your win rate; bankroll management decides whether variance bankrupts you before your edge plays out. A standard guideline: 20-30 buy-ins for cash games, 100+ for tournaments. Move down when you dip below the threshold; you're protecting your ability to keep playing.
+        body: `Skill decides your win rate; bankroll management decides whether variance bankrupts you before your edge plays out. A standard guideline: 20-30 buy-ins for cash games, 100+ for tournaments. Move down when you dip below the threshold — you're protecting your ability to keep playing.
 
-Variance is brutal in the short run. You can play perfectly and lose for tens of thousands of hands. This is why you track decisions, not results: a good fold that "would have won" was still a good fold. Results-oriented thinking ("I should've called, I had it!") is the fastest path to tilt.
+The crucial subtlety: bankroll management governs what stakes you sit at, never how you play a hand once seated. If the money in front of you changes your in-game decisions — you start folding +EV spots because a buy-in "feels" too big — you're playing scared money, and scared money plays losing poker. The fix isn't courage; it's moving down until the stakes stop mattering.
 
-Tilt is emotionally-driven deviation from your best strategy — usually after a bad beat. The fix is mechanical: set a stop-loss, take breaks, and treat each hand as independent. The cards don't remember the last hand; neither should you.
-
-Grinding is just this loop: study the baseline → play volume → review the spots you misplayed → adjust → repeat. There's no shortcut, but the loop compounds.`,
+Shot-taking is fine when it's planned: a defined number of buy-ins at the higher stake, and back down if they're lost. What's not fine is drifting up in stakes to chase losses — that's how downswings become busted rolls.`,
         takeaways: [
           'Bankroll: ~20-30 buy-ins cash, ~100+ tournaments. Move down to survive variance.',
-          'Judge decisions, not results — results-oriented thinking breeds tilt.',
-          'The grind = study baseline → play volume → review → adjust → repeat.',
+          'Bankroll decides your stakes, never your in-hand decisions — scared money loses.',
+          'Take planned shots; never move up to chase losses.',
         ],
+        spot: {
+          scenario: 'Cash game · your roll is down to 18 buy-ins after a rough week, and now this.',
+          heroPos: 'BTN',
+          heroCards: ['Ac', 'Kd'],
+          villainPos: 'CO',
+          board: [],
+          pot: 320,
+          toCall: 900,
+          history: ['Your bankroll: 18 buy-ins (guideline: 20-30) after a downswing', 'You open, CO 3-bets, you 4-bet, CO jams 100bb', 'AKs-and-QQ+ territory — a standard call'],
+          question: 'A standard +EV call for a full buy-in — but the roll is thin. What do you do?',
+          options: [
+            {
+              label: 'Call — the bankroll never plays a hand',
+              verdict: 'best',
+              because: 'In-game decisions are made on EV, full stop. If a standard call feels too big for your roll, the error happened before you sat down — the fix is playing lower, not folding +EV.',
+            },
+            {
+              label: 'Fold to protect the bankroll',
+              verdict: 'bad',
+              because: 'That’s scared money: passing up +EV because of the balance sheet turns a winning game into a losing one. Protect the roll by choosing stakes, not by misplaying hands.',
+            },
+            {
+              label: 'Call, and if it loses, move up to win it back',
+              verdict: 'bad',
+              because: 'Chasing losses up in stakes is the single fastest way to turn a downswing into a busted bankroll.',
+            },
+          ],
+          moral: 'Bankroll management chooses your stakes; EV chooses your plays. Never let them swap jobs.',
+        },
+      },
+      {
+        id: 'tilt-control',
+        title: 'Tilt: decisions, not results',
+        minutes: 6,
+        body: `Variance is brutal in the short run. You can play perfectly and lose for tens of thousands of hands. This is why you track decisions, not results: a good fold that "would have won" was still a good fold. Results-oriented thinking ("I should've called, I had it!") is the fastest path to tilt.
+
+Tilt is emotionally-driven deviation from your best strategy — usually right after a bad beat. It rarely announces itself; it shows up as a slightly wider call here, a spite 3-bet there, a session that runs two hours past your plan.
+
+The fix is mechanical, not psychological: set a stop-loss before the session, take a break after a big pot lands wrong, and treat every hand as independent — the cards don't remember the last hand, and neither should you. The binary test after a beat: can I still play my A-game? If yes, keep playing it. If no, leave. Never split the difference with B-game spew.`,
+        takeaways: [
+          'Judge decisions, not results — a good fold that would have won was still good.',
+          'Tilt = emotional deviation; it shows up in small leaks before big punts.',
+          'Mechanical fixes: stop-loss, breaks, and the A-game-or-leave test.',
+        ],
+        spot: {
+          scenario: 'The very next hand after losing a 200bb pot to a two-outer on the river.',
+          heroPos: 'CO',
+          heroCards: ['Ah', 'Jc'],
+          villainPos: 'Table',
+          board: [],
+          pot: 15,
+          history: ['You just took a brutal beat for a full stack', 'Very next hand: folded to you in the cutoff with AJo'],
+          question: 'Blood is up. What’s the play?',
+          options: [
+            {
+              label: 'Open your standard 2.3× — same as always',
+              verdict: 'best',
+              because: 'AJo in the cutoff is a routine open, and the cards don’t remember the last hand. Playing the exact same game after a beat IS the skill being tested here.',
+            },
+            {
+              label: 'Open-jam 100bb to win it back right now',
+              verdict: 'bad',
+              because: 'That’s tilt in its purest form — torching a standard spot to service an emotion. The last pot is gone; this jam only donates the next one.',
+            },
+            {
+              label: 'Sit out and take a break if you can’t reset',
+              verdict: 'ok',
+              because: 'A disciplined break beats B-game poker every time. It gives up a little EV versus playing your A-game — but only a little, and far less than spewing.',
+            },
+          ],
+          moral: 'After a beat there are two good options: your normal A-game, or the door. Nothing in between.',
+        },
       },
       {
         id: 'study-routine',
