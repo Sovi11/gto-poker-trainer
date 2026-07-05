@@ -59,7 +59,7 @@ export function LearnView() {
               ))}
             </ul>
           </div>
-          {active.spot && <SpotPlayer spot={active.spot} />}
+          {active.spot && <SpotPlayer key={active.id} spot={active.spot} />}
           <button className="primary" onClick={() => toggleDone(active.id)}>
             {done.has(active.id) ? 'Mark as not done' : 'Mark complete ✓'}
           </button>
