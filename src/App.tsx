@@ -4,10 +4,12 @@ import { PlayView } from './components/PlayView';
 import { LearnView } from './components/LearnView';
 import { BotsView } from './components/BotsView';
 import { DrillsView } from './components/DrillsView';
+import { DailyView } from './components/DailyView';
 
-type Tab = 'learn' | 'drills' | 'solver' | 'bots' | 'play';
+type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: 'daily', label: 'Daily', icon: '📅' },
   { id: 'learn', label: 'Learn', icon: '📚' },
   { id: 'drills', label: 'Drills', icon: '🎯' },
   { id: 'solver', label: 'Solver', icon: '🧮' },
@@ -16,7 +18,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ];
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('learn');
+  const [tab, setTab] = useState<Tab>('daily');
   const [playBot, setPlayBot] = useState<string | null>(null);
 
   const goPlay = (botId: string) => {
@@ -45,6 +47,7 @@ export default function App() {
       </header>
 
       <main>
+        {tab === 'daily' && <DailyView onGoDrills={() => setTab('drills')} />}
         {tab === 'learn' && <LearnView />}
         {tab === 'drills' && <DrillsView />}
         {tab === 'solver' && <SolverView />}

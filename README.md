@@ -8,6 +8,11 @@ Everything runs in the browser; no backend, no sign-up, no network calls.
 
 ## Features
 
+### 📅 Daily Puzzle
+One puzzle a day — the same for every player, generated deterministically from the date
+(no backend). Wordle-style guessing with higher/lower hints, a daily streak, and an
+emoji-grid share button.
+
 ### 📚 Learn — a structured GTO course
 Four modules, ten lessons, with key-takeaway summaries and progress tracking:
 - **Foundations** — what GTO actually means, equity / pot odds / EV.

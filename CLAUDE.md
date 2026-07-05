@@ -49,6 +49,13 @@ src/
   gto/
     ranges.ts        · 6-max RFI + response charts (range strings)
     pushfold.ts      · heads-up Nash push/fold table by stack depth (BB)
+  drills/
+    types.ts         · seedable, auto-graded drill generators (8 types, 4 categories)
+    daily.ts         · Daily Puzzle: deterministic drill-of-the-day from the calendar
+                       date, guess judging, streak math, emoji share grid
+  lib/
+    storage.ts       · versioned, corruption-proof localStorage helpers
+    usePersistentState.ts · useState that survives reloads (JSON-serializable values)
   bots/
     personalities.ts · the 6 bots and their numeric profiles (tightness, aggression, …)
     preflopStrength.ts · Chen-formula starting-hand percentiles + top-X% range builder
