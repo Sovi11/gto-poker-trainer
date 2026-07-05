@@ -636,8 +636,8 @@ Rake taxes small and multiway pots hardest, and the blinds are raked most. In ra
   },
   {
     id: 'postflop',
-    title: '3 · Postflop',
-    summary: 'Continuation betting, board texture, and pot geometry.',
+    title: '3 · Postflop Fundamentals',
+    summary: 'C-betting, defending, barreling, and playing the turn and river.',
     lessons: [
       {
         id: 'cbet',
@@ -689,6 +689,266 @@ In this app: against the bots, watch how the Nit (Rocky) over-folds to c-bets �
         },
       },
       {
+        id: 'defending-as-caller',
+        title: 'Defending as the preflop caller',
+        minutes: 8,
+        body: `When you call a raise you take a capped, out-of-position range to the flop — but that doesn’t mean you fold to every c-bet. You defend enough of your range (its minimum defence frequency) that villain can’t profitably c-bet any two cards.
+
+Continue with made hands, pairs, and everything with equity: draws, gutshots, even backdoor flush + straight combos. Most of your folding happens on later streets, not the flop — over-folding the flop is one of the most common and most punished leaks.
+
+You have two continuing actions: check-call the hands that want to realise equity cheaply, and check-raise a polar range (your strongest hands plus draws) to fight back. In position you can also float — call with backdoors and overcards to take the pot away later.`,
+        takeaways: [
+          'Defend enough of your range (MDF) that a c-bet can’t auto-profit.',
+          'Continue with equity: pairs, draws, gutshots, backdoors — don’t over-fold the flop.',
+          'Check-call to realise equity, check-raise a polar range, float in position.',
+        ],
+        spot: {
+          scenario: 'Flop · you called in the big blind and the button continuation-bets.',
+          heroPos: 'BB',
+          heroCards: ['Th', '9h'],
+          villainPos: 'BTN',
+          board: ['Qs', '8d', '3c'],
+          pot: 60,
+          toCall: 20,
+          history: ['You call the BTN open from the BB', 'Flop: Q♠ 8♦ 3♣', 'BTN c-bets 20 into 60'],
+          question: 'You have T9 (a gutshot + backdoor flush + backdoor straight). What’s best?',
+          options: [
+            {
+              label: 'Call',
+              verdict: 'best',
+              because: 'A gutshot to the J plus backdoor flush and straight equity is plenty to defend a small c-bet. Folding here lets the button print with any two cards.',
+            },
+            {
+              label: 'Fold',
+              verdict: 'bad',
+              because: 'Over-folding the flop is the biggest caller leak — you’re surrendering a hand with real equity to a cheap bet.',
+            },
+            {
+              label: 'Check-raise',
+              verdict: 'ok',
+              because: 'A check-raise semi-bluff is a fine occasional line with this equity, but the pure call is the standard, lower-variance defend.',
+            },
+          ],
+          moral: 'Defend enough (MDF) to deny the c-bet auto-profit — and hold onto equity rather than over-folding.',
+        },
+      },
+      {
+        id: 'turn-barreling',
+        title: 'Turn barreling & giving up',
+        minutes: 8,
+        body: `The turn is where pots get big and ranges get decided. Fire a second barrel on cards that keep or extend your advantage; give up on cards that smash the caller’s range.
+
+Barrel with a plan: value hands that want to build the pot, plus bluffs that carry equity (draws) and useful blockers. Cards that favour you — overcards to the flop, cards that complete your range’s draws — are green lights. Cards that improve the caller (middling connectors on a board they defended) are stop signs.
+
+Not every flop c-bet gets a turn barrel. Check back your marginal made hands to control the pot and protect your checking range, and pick your best equity hands to keep firing as bluffs.`,
+        takeaways: [
+          'Barrel turns that keep your range advantage; give up on cards that help the caller.',
+          'Use hands with equity + blockers as your turn bluffs.',
+          'Check back marginal made hands to control the pot and protect your range.',
+        ],
+        spot: {
+          scenario: 'Turn · you c-bet A-K-4 and were called; the turn bricks.',
+          heroPos: 'BTN',
+          heroCards: ['Qc', 'Jc'],
+          villainPos: 'BB',
+          board: ['As', 'Kd', '4c', '9h'],
+          pot: 90,
+          history: ['You c-bet the flop, BB calls', 'Turn: 9♥ (a blank for the BB)', 'BB checks to you'],
+          question: 'You hold QJ (a gutshot to Broadway). Barrel or check back?',
+          options: [
+            {
+              label: 'Barrel again',
+              verdict: 'best',
+              because: 'The 9 doesn’t help the BB’s range, you keep the nut and range advantage on an ace-high board, and QJ has a gutshot plus the ability to credibly rep AK/AQ.',
+            },
+            {
+              label: 'Check back',
+              verdict: 'ok',
+              because: 'Pot control is defensible, but you surrender fold equity on one of the best barrel cards in the deck with a hand that wants folds now.',
+            },
+            {
+              label: 'Give up (check, fold turn/river)',
+              verdict: 'bad',
+              because: 'Abandoning your range and board advantage on a blank turn lets the caller realise equity for free.',
+            },
+          ],
+          moral: 'Barrel turns that preserve your range advantage, using hands with equity as your bluffs.',
+        },
+      },
+      {
+        id: 'river-value-betting',
+        title: 'River value betting',
+        minutes: 8,
+        body: `On the river there are no more cards — you bet for value when worse hands call often enough. The bar is lower than beginners think: you don’t need villain to have a strong hand, just to call with something you beat at a reasonable frequency.
+
+Size to the hands you’re targeting. Thin value (top pair on a dry board) wants a smaller size that a weak pair can call; polar value (the nuts) wants a big size. Betting too big folds out the exact worse hands you were trying to get paid by.
+
+And don’t check hands that beat villain’s calling range — checking back a hand that would’ve been called by worse is a missed bet, one of the quietest but most expensive river leaks.`,
+        takeaways: [
+          'Value bet when worse hands call often enough — the bar is low.',
+          'Size to the hands you beat: thinner value → smaller bet.',
+          'Don’t check back a hand worse hands would call — that’s a missed bet.',
+        ],
+        spot: {
+          scenario: 'River · you have top pair and villain checks to you.',
+          heroPos: 'BTN',
+          heroCards: ['Ad', 'Jd'],
+          villainPos: 'BB',
+          board: ['Js', '7c', '3d', '2s', '5h'],
+          pot: 80,
+          history: ['You bet the flop, checked the turn', 'River: 5♥', 'BB checks'],
+          question: 'You hold top pair, top kicker. What’s the best river action?',
+          options: [
+            {
+              label: 'Bet ~½ pot (≈40)',
+              verdict: 'best',
+              because: 'Worse pairs (weaker Jx, 7x, pocket pairs) and even ace-highs will call a moderate size. That’s clean thin value — you beat their calling range.',
+            },
+            {
+              label: 'Check back',
+              verdict: 'bad',
+              because: 'Top pair top kicker beats most of villain’s bluff-catchers; checking forfeits a bet worse hands would have paid.',
+            },
+            {
+              label: 'Overbet the pot',
+              verdict: 'bad',
+              because: 'Too big folds out the weak pairs you’re targeting — you only get called by hands that beat you.',
+            },
+          ],
+          moral: 'Value bet when worse hands call, and size to the hands you actually beat.',
+        },
+      },
+      {
+        id: 'river-bluffing',
+        title: 'River bluffing: turning hands into bluffs',
+        minutes: 8,
+        body: `On the river your hand is one of two things: it either has showdown value or it doesn’t. The hands with none — busted draws, missed overcards — are your bluff candidates, because betting is the *only* way they win. Checking them just concedes the pot.
+
+Pick the busted hands that block villain’s calls and unblock their folds, and size big enough to fold out their bluff-catchers. Then balance: for a given size you want the right ratio of value to bluffs so a thinking villain can’t simply call or fold every time.
+
+The mirror-image mistake is bluffing hands that had showdown value (turning a hand that could’ve won into a bluff) or checking your no-value hands and giving up. Bet the trash, check (or value-bet) the made hands.`,
+        takeaways: [
+          'Bluff the hands with no showdown value — betting is their only way to win.',
+          'Choose bluffs that block value and unblock folds; size to fold out bluff-catchers.',
+          'Don’t bluff hands that had showdown value, and don’t check back pure air.',
+        ],
+        spot: {
+          scenario: 'River · your straight draw bricked and villain checks to you.',
+          heroPos: 'BTN',
+          heroCards: ['Qc', '9c'],
+          villainPos: 'BB',
+          board: ['Js', 'Td', '6c', '2h', '8h'],
+          pot: 70,
+          history: ['You barreled the flop and turn with a straight draw', 'River: 8♥ — your draw misses', 'BB checks'],
+          question: 'You have Q-high, no showdown value. Bet or check?',
+          options: [
+            {
+              label: 'Bet (bluff)',
+              verdict: 'best',
+              because: 'Q-high never wins at showdown, so betting is your only path to the pot. You credibly rep the missed and made straights (7-9, QK) and fold out villain’s weak pairs.',
+            },
+            {
+              label: 'Check',
+              verdict: 'bad',
+              because: 'Checking a hand with zero showdown value simply concedes — you give up a pot you could have won by betting.',
+            },
+            {
+              label: 'Bet tiny (¼ pot)',
+              verdict: 'ok',
+              because: 'A bluff should fold out bluff-catchers; a tiny size gets called by too many weak pairs to work.',
+            },
+          ],
+          moral: 'Turn your no-showdown-value hands into bluffs — checking them just gives up the pot.',
+        },
+      },
+      {
+        id: 'check-raising',
+        title: 'Check-raising out of position',
+        minutes: 8,
+        body: `Out of position, checking doesn’t have to mean weakness. A check-raise builds a range that fights back when you’re not the preflop aggressor, and it punishes opponents who c-bet too wide expecting to steal.
+
+Build it polarized: value hands strong enough to play a big pot (sets, two pair, strong top pairs) plus bluffs that carry equity and blockers (flush draws, open-enders, combo draws). The draws give you two ways to win — fold equity now, and outs when called.
+
+Balance matters — if you only check-raise the nuts, villain folds everything but their best; if you only bluff, they never fold. The mix is what makes your check taken seriously and stops villain from betting into you for free.`,
+        takeaways: [
+          'Check-raising builds an OOP range that punishes wide c-betting.',
+          'Go polar: strong value + draws with equity and blockers.',
+          'Balance value and bluffs so villain can’t auto-continue against your check.',
+        ],
+        spot: {
+          scenario: 'Flop · you check the big blind and the button c-bets into a two-tone board.',
+          heroPos: 'BB',
+          heroCards: ['Ah', 'Kh'],
+          villainPos: 'BTN',
+          board: ['9h', '6h', '2s'],
+          pot: 40,
+          toCall: 25,
+          history: ['You defend the BB, flop 9♥ 6♥ 2♠', 'You check, BTN c-bets 25 into 40'],
+          question: 'You have the nut-flush draw with two overcards. Best line?',
+          options: [
+            {
+              label: 'Check-raise',
+              verdict: 'best',
+              because: 'The nut-flush draw plus two overs is a premium semi-bluff: huge equity when called and strong fold equity now. It anchors the bluff half of your check-raising range.',
+            },
+            {
+              label: 'Call',
+              verdict: 'ok',
+              because: 'Calling keeps villain’s bluffs in and is fine, but it realises less than check-raising and lets them see turns cheaply with the worst of it.',
+            },
+            {
+              label: 'Fold',
+              verdict: 'bad',
+              because: 'Folding the nut-flush draw with two overcards to a single c-bet is far too weak — you have enormous equity.',
+            },
+          ],
+          moral: 'Check-raise a polarized range out of position: nutted value plus draws with real equity.',
+        },
+      },
+      {
+        id: 'playing-draws',
+        title: 'Playing draws: semi-bluff vs pot control',
+        minutes: 7,
+        body: `A draw wins in two ways: by betting and getting folds now (fold equity), or by checking and hitting later (raw equity). Good draw play is choosing which of those you’re going for.
+
+Semi-bluff your strong draws — you’d like folds, but you’re happy to get called because you have outs. Betting also lets you build the pot for when you hit and denies villain his equity. Take free cards with your weaker draws, or when villain never folds (a station), where the fold-equity half of the semi-bluff just isn’t there.
+
+The read flips the decision: fold equity exists against thinking players and disappears against calling stations. Against a station, check and realise your equity cheaply; against a fold-prone opponent, fire.`,
+        takeaways: [
+          'Semi-bluff = win now via fold equity, or later via your outs.',
+          'Bet strong draws with fold equity; take free cards with weak ones.',
+          'No fold equity vs a station → check and realise equity cheaply.',
+        ],
+        spot: {
+          scenario: 'Flop · single-raised pot, you’re first to act with the nut-flush draw.',
+          heroPos: 'BB',
+          heroCards: ['Ad', '5d'],
+          villainPos: 'BTN',
+          board: ['Qd', '7d', '3s'],
+          pot: 45,
+          history: ['You defend the BB, flop Q♦ 7♦ 3♠', 'Action is on you, first to act'],
+          question: 'You flopped the nut-flush draw against a normal opponent. What’s best?',
+          options: [
+            {
+              label: 'Bet (semi-bluff)',
+              verdict: 'best',
+              because: 'You win two ways: fold equity now, and the nut flush when it comes. Betting also builds the pot for when you hit and denies villain a free look.',
+            },
+            {
+              label: 'Check-call',
+              verdict: 'ok',
+              because: 'Pot control realises your equity, but it forfeits the fold-equity half of a strong draw against an opponent who can fold.',
+            },
+            {
+              label: 'Check-fold',
+              verdict: 'bad',
+              because: 'Giving up the nut-flush draw wastes ~9 outs plus overcard and fold equity — a big leak.',
+            },
+          ],
+          moral: 'Semi-bluff strong draws for fold equity + outs; take free cards when folds are unlikely.',
+        },
+      },
+      {
         id: 'polarization',
         title: 'Polarized vs merged ranges',
         minutes: 8,
@@ -731,6 +991,272 @@ In this app: GTO Greg and Sharon the Shark play balanced ranges — you can't ju
             },
           ],
           moral: 'Polarized ranges (nuts + bluffs) bet big; merged ranges (thin value) bet small.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'sizing-texture',
+    title: '4 · Bet Sizing & Texture',
+    summary: 'Reading and choosing sizes, overbets, board texture, and multiway pots.',
+    lessons: [
+      {
+        id: 'bet-sizing-tells',
+        title: 'What your sizing says',
+        minutes: 8,
+        body: `Bet sizing is a language. A small bet (25–33% pot) says "wide and merged" — I’m betting a lot of hands on a board that favours me, denying equity cheaply. A big bet (66–100%+) says "polarized" — I have strong value and bluffs, little in between.
+
+Because size encodes range, you must keep your sizing consistent at each decision point, or observant opponents read you like a book. Solvers pick their sizes from the board and the range advantage, not from the strength of one hand.
+
+The flip side is reading villain’s size. A pot-sized or larger bet is polar — the nuts or a bluff, rarely a thin value hand — so you respond by bluff-catching to your frequency, not by folding everything or raising a medium hand into a polar range.`,
+        takeaways: [
+          'Small bet = wide/merged; big bet = polarized (nuts + bluffs).',
+          'Keep sizing consistent per node so you’re not readable.',
+          'A big bet is polar — bluff-catch to MDF, don’t fold every medium hand.',
+        ],
+        spot: {
+          scenario: 'River · a solid reg fires a pot-sized bet and you hold top pair.',
+          heroPos: 'BB',
+          heroCards: ['Kh', 'Qd'],
+          villainPos: 'BTN',
+          board: ['Qs', 'Jd', '8c', '4s', '2h'],
+          pot: 100,
+          toCall: 100,
+          history: ['You check-call two streets with top pair', 'River: 2♥', 'BTN bets 100 (pot)'],
+          question: 'A pot-sized (polar) bet with your top-pair bluff-catcher — best read and play?',
+          options: [
+            {
+              label: 'Treat it as polar, bluff-catch to MDF',
+              verdict: 'best',
+              because: 'A pot-sized bet is nuts-or-bluffs. Your KQ beats exactly the bluffs, so it’s a bluff-catcher — continue at the frequency MDF/your read demands rather than over-folding.',
+            },
+            {
+              label: 'Raise for value',
+              verdict: 'bad',
+              because: 'Raising a bluff-catcher into a polar range only gets called by better and folds out the bluffs — you turn a hand that beats bluffs into a bluff.',
+            },
+            {
+              label: 'Fold — a big bet means the nuts',
+              verdict: 'bad',
+              because: 'Polar means nuts OR bluffs. Folding every bluff-catcher to a big bet lets villain print by bluffing — that’s exactly what MDF prevents.',
+            },
+          ],
+          moral: 'Big bets are polar (nuts or bluffs), not thin value — respond by bluff-catching, not folding everything.',
+        },
+      },
+      {
+        id: 'overbets',
+        title: 'Overbets & the polar big bet',
+        minutes: 8,
+        body: `An overbet — betting more than the pot — is the most polar size there is: only the nuts and pure bluffs belong in it. It’s a scalpel, not a hammer.
+
+Use it when two things are true: your range has a nut advantage (you hold the top hands far more often than villain) and villain’s range is capped (they’ve denied themselves the strongest hands by their earlier line). Then the overbet extracts maximum value from the nuts and gives your bluffs maximum fold equity at the same size.
+
+The requirement is that you actually have the nutted hands in your range on this runout — you can’t overbet a range that can’t hold the nuts, or a thinking opponent just calls you down.`,
+        takeaways: [
+          'Overbet = the most polar size: nuts and pure bluffs only.',
+          'Use it with a nut advantage vs a capped range.',
+          'You must credibly hold the nuts on this runout to overbet it.',
+        ],
+        spot: {
+          scenario: 'River · a flush completes and you hold the nut flush against a capped range.',
+          heroPos: 'BTN',
+          heroCards: ['Ad', '4d'],
+          villainPos: 'BB',
+          board: ['As', 'Kd', '5d', '7d', '2d'],
+          pot: 100,
+          history: ['You raise pre and bet flop/turn, BB calls', 'River: 2♦ — four diamonds, you hold the nut flush', 'BB checks'],
+          question: 'You have the nut flush; villain is capped (would’ve raised big flushes earlier). Size?',
+          options: [
+            {
+              label: 'Overbet',
+              verdict: 'best',
+              because: 'You hold the nut flush and a clear nut advantage against a capped range. Overbetting extracts maximum value from their ace-x and sets, and the same size powers your bluffs.',
+            },
+            {
+              label: 'Bet ⅓ pot',
+              verdict: 'bad',
+              because: 'A tiny size massively under-realises the nuts on a runout where you can bet huge and still get called by second-best hands.',
+            },
+            {
+              label: 'Check back',
+              verdict: 'bad',
+              because: 'Checking the nuts on the river forfeits the biggest value bet available to you.',
+            },
+          ],
+          moral: 'Overbet with a nut advantage against a capped range — maximum value and maximum bluff pressure.',
+        },
+      },
+      {
+        id: 'board-texture',
+        title: 'Board texture taxonomy',
+        minutes: 8,
+        body: `Boards come in types, and the type dictates your strategy. Dry, static boards (A-K-4 rainbow) have few draws and stable equities — the preflop raiser can bet small and often because nothing changes and the board favours their range.
+
+Wet, dynamic boards (9-8-7 two-tone) are the opposite: draws everywhere, equities run close, and the turn changes everything. Here you check more and bet bigger and more polar when you do, because a small bet invites raises and fails to charge the many draws.
+
+Paired and monotone boards have their own logic (fewer combos of strong hands, flush/boat dynamics). The habit to build: before choosing a size, name the texture and ask whether the turn is likely to shift equities.`,
+        takeaways: [
+          'Dry/static boards → bet small and often; equities are stable.',
+          'Wet/dynamic boards → check more, bet bigger and polar.',
+          'Name the texture before you size; ask if the turn will swing equities.',
+        ],
+        spot: {
+          scenario: 'Flop · you’re the preflop raiser on a very wet, connected board.',
+          heroPos: 'BTN',
+          heroCards: ['As', 'Ac'],
+          villainPos: 'BB',
+          board: ['9h', '8h', '7c'],
+          pot: 55,
+          history: ['You open, BB calls', 'Flop: 9♥ 8♥ 7♣ — about as wet as it gets'],
+          question: 'You have an overpair on 9-8-7 two-tone. What’s the right c-bet approach?',
+          options: [
+            {
+              label: 'Bet bigger / more polar, c-bet less often',
+              verdict: 'best',
+              because: 'This dynamic board hammers the BB’s range and swings on many turns. Size up to charge the draws and protect your overpair, and check a chunk of your range to stay balanced.',
+            },
+            {
+              label: 'Bet small with your whole range',
+              verdict: 'bad',
+              because: 'Small-and-often is the *dry*-board play. Here it invites raises and fails to charge the flush and straight draws that have big equity against you.',
+            },
+            {
+              label: 'Always check',
+              verdict: 'ok',
+              because: 'Checking some hands is right, but never betting under-realises your overpair and lets villain’s draws see free cards.',
+            },
+          ],
+          moral: 'Match sizing and frequency to texture: dry favours small-and-often, wet favours big-and-selective.',
+        },
+      },
+      {
+        id: 'range-vs-range',
+        title: 'Range vs range: who does the board favour?',
+        minutes: 8,
+        body: `Every postflop decision is your whole range against villain’s whole range on this specific board. The first question is always: whose preflop range connects harder here?
+
+The player with the range (and nut) advantage should bet more often; the other should check and defend. On A-K-4 the preflop raiser is favoured — their range is full of big cards. On 6-5-4 the wide caller is favoured — they defend far more small and connected hands that make straights, two pair, and sets, while the raiser’s range is mostly overcards that missed.
+
+Training your eye to read this at a glance is one of the highest-leverage postflop skills: it tells you whether to be the aggressor or the defender before you ever think about your own two cards.`,
+        takeaways: [
+          'Ask who the board favours before deciding to bet or check.',
+          'High/disconnected boards favour the raiser; low/connected boards favour the caller.',
+          'The player with range advantage bets more; the other defends.',
+        ],
+        spot: {
+          scenario: 'Flop · you raised preflop and the big blind called; a low connected flop.',
+          heroPos: 'BTN',
+          heroCards: ['Ac', 'Kc'],
+          villainPos: 'BB',
+          board: ['6h', '5d', '4c'],
+          pot: 55,
+          history: ['You open, BB calls', 'Flop: 6♥ 5♦ 4♣'],
+          question: 'On 6-5-4, who has the range advantage — and what does it imply?',
+          options: [
+            {
+              label: 'The BB caller — so check a lot',
+              verdict: 'best',
+              because: 'The BB defends tons of 87, 76, 53, 33, 44 — straights, two pair, sets — while your raising range is mostly overcards that whiffed. They have the range and nut advantage, so you check much more here.',
+            },
+            {
+              label: 'The preflop raiser — bet small and often',
+              verdict: 'bad',
+              because: 'That’s the dry-high-board play. On 6-5-4 your range is largely overcards; blasting away runs into a range that hits this board far harder.',
+            },
+            {
+              label: 'Neither — sizing doesn’t matter',
+              verdict: 'bad',
+              because: 'Range advantage almost always tilts one way; ignoring it is how you c-bet into the exact ranges that crush you.',
+            },
+          ],
+          moral: 'Read who the board favours first — low connected boards belong to the caller, not the raiser.',
+        },
+      },
+      {
+        id: 'multiway-pots',
+        title: 'Multiway pots',
+        minutes: 7,
+        body: `Everything you know about heads-up pots loosens when a third player is in. With more ranges to get through, someone usually connects — so bluffs go down in value and you need stronger hands to bet and to continue.
+
+Practically: c-bet much less often, size down, and tighten up. Bluffing into two players is asking to get called; thin value bets get raised more; and marginal made hands that were value heads-up become bluff-catchers multiway. Nut hands, meanwhile, go *up* in value — there’s more money and more second-best hands to pay them off.
+
+The mental adjustment is discipline: respect that in a family pot, someone probably has it, and save your chips for the spots where you have a genuinely strong hand.`,
+        takeaways: [
+          'Multiway → bluff far less; someone usually connects.',
+          'Marginal made hands become bluff-catchers; c-bet less and smaller.',
+          'Nut hands rise in value — more players to pay them off.',
+        ],
+        spot: {
+          scenario: 'Flop · a three-way pot on a draw-heavy board with top pair.',
+          heroPos: 'CO',
+          heroCards: ['Ac', 'Jd'],
+          villainPos: 'BTN + BB',
+          board: ['Jh', 'Th', '5c'],
+          pot: 70,
+          history: ['You open CO, BTN and BB call', 'Flop: J♥ T♥ 5♣ — you have top pair top kicker'],
+          question: 'Three-way on J-T-5 two-tone with AJ. What’s best?',
+          options: [
+            {
+              label: 'Check (pot control)',
+              verdict: 'best',
+              because: 'Three-way on a draw-heavy board, top pair plays more like a bluff-catcher. Betting into two ranges full of pairs, draws, and two-pair combos bloats the pot with a vulnerable hand.',
+            },
+            {
+              label: 'Bet big for value',
+              verdict: 'bad',
+              because: 'AJ isn’t strong enough to build a big pot into two players on a board this wet — you get called or raised by better far too often.',
+            },
+            {
+              label: 'Bluff-raise if bet into',
+              verdict: 'bad',
+              because: 'Bluffing multiway is spew — with two ranges to fold out, your fold equity collapses.',
+            },
+          ],
+          moral: 'Multiway pots demand caution: fewer bluffs, tighter value, respect that someone has it.',
+        },
+      },
+      {
+        id: 'delayed-probe-bets',
+        title: 'Delayed c-bets & probe bets',
+        minutes: 7,
+        body: `When a street checks through, information is created: someone gave up the initiative, and their range is now capped at medium-strength. Two bets attack that weakness.
+
+A delayed c-bet is when the preflop raiser checks the flop, then bets the turn — often to take a stab after showing weakness, or having picked up equity. A probe bet is the caller leading into the raiser on a later street after the raiser checked back the flop, attacking the cap that check-back revealed.
+
+Both plays hunt the same signal: a checked-through street usually means neither side has a big hand, and whoever fires next often takes it down — especially with a hand that has some equity to fall back on.`,
+        takeaways: [
+          'A checked-through street caps ranges at medium strength.',
+          'Delayed c-bet: the raiser stabs the turn after checking the flop.',
+          'Probe bet: the caller leads into the raiser who checked back — attack the cap.',
+        ],
+        spot: {
+          scenario: 'Turn · the flop checked through and a good card comes for your range.',
+          heroPos: 'BB',
+          heroCards: ['Kc', 'Jc'],
+          villainPos: 'BTN',
+          board: ['8s', '5d', '2c', 'Qh'],
+          pot: 45,
+          history: ['You call in the BB', 'Flop 8♠ 5♦ 2♣ checks through', 'Turn: Q♥'],
+          question: 'The button checked back the flop (capping their range). You have KJ with a gutshot. Best play?',
+          options: [
+            {
+              label: 'Probe (bet the turn)',
+              verdict: 'best',
+              because: 'The flop check-back caps the button at weak/medium hands. The Q favours your range, and KJ has two overs plus a gutshot to barrel — leading takes it away or sets up a bluff.',
+            },
+            {
+              label: 'Check again',
+              verdict: 'ok',
+              because: 'Checking isn’t terrible, but you pass up an attackable weakness with a hand that has equity and good barrel cards ahead.',
+            },
+            {
+              label: 'Check-fold',
+              verdict: 'bad',
+              because: 'Giving up when villain just told you they have nothing wastes a clear +EV attacking spot.',
+            },
+          ],
+          moral: 'A checked-through street reveals weakness — attack it with a probe or a delayed c-bet.',
         },
       },
     ],
