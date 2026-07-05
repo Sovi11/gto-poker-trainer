@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CURRICULUM, Lesson } from '../data/lessons';
+import { SpotPlayer } from './SpotPlayer';
 
 export function LearnView() {
   const [active, setActive] = useState<Lesson>(CURRICULUM[0].lessons[0]);
@@ -58,6 +59,7 @@ export function LearnView() {
               ))}
             </ul>
           </div>
+          {active.spot && <SpotPlayer spot={active.spot} />}
           <button className="primary" onClick={() => toggleDone(active.id)}>
             {done.has(active.id) ? 'Mark as not done' : 'Mark complete ✓'}
           </button>
