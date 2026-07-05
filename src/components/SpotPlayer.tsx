@@ -5,7 +5,7 @@ import { CardRow } from './Card';
 
 // Renders an "illustrated hand": a scripted spot with a mini table, one key
 // decision, per-option feedback, and the lesson's takeaway.
-export function SpotPlayer({ spot }: { spot: Spot }) {
+export function SpotPlayer({ spot, onAnswered }: { spot: Spot; onAnswered?: () => void }) {
   const [choice, setChoice] = useState<number | null>(null);
   const revealed = choice !== null;
   const hero = spot.heroCards.map(parseCard);
@@ -25,10 +25,10 @@ export function SpotPlayer({ spot }: { spot: Spot }) {
       <div className="spot-table">
         <div className="spot-seat">
           <span className="spot-pos">{spot.heroPos} · you</span>
-          <CardRow cards={hero} small />
+          <CardRow cards={hero} small dealt />
         </div>
         <div className="spot-board">
-          <CardRow cards={board.length ? board : [null, null, null]} small />
+          <CardRow cards={board.length ? board : [null, null, null]} small dealt />
           <span className="spot-pot">
             Pot {spot.pot}
             {spot.toCall ? ` · to call ${spot.toCall}` : ''}
@@ -66,7 +66,15 @@ export function SpotPlayer({ spot }: { spot: Spot }) {
             .filter(Boolean)
             .join(' ');
           return (
-            <button key={i} className={cls} disabled={revealed} onClick={() => setChoice(i)}>
+            <button
+              key={i}
+              className={cls}
+              disabled={revealed}
+              onClick={() => {
+                setChoice(i);
+                onAnswered?.();
+              }}
+            >
               <span>{o.label}</span>
               {revealed && (o.verdict === 'best' || choice === i) && (
                 <span className={`spot-tag ${o.verdict}`}>{o.verdict === 'best' ? 'GTO' : o.verdict}</span>

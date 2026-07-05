@@ -809,36 +809,81 @@ table.stats td:nth-child(odd) {
   gap: 5px;
 }
 
-.card {
+.card-slot {
   display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 52px;
-  background: #fafafa;
-  border-radius: 6px;
-  border: 1px solid #c8c8c8;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-  font-weight: 800;
-  line-height: 1;
 }
 
-.card-sm {
-  width: 30px;
-  height: 42px;
+.card-row-dealt .card-slot {
+  animation: card-deal 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2) backwards;
+}
+
+@keyframes card-deal {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) rotate(-4deg) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.card {
+  position: relative;
+  display: inline-flex;
+  width: 40px;
+  height: 56px;
+  background: linear-gradient(160deg, #ffffff, #ececec);
+  border-radius: 6px;
+  border: 1px solid #b9b9b9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.45);
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+}
+
+.card-corner {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
 }
 
 .card-rank {
-  font-size: 15px;
+  font-size: 14px;
+}
+
+.card-corner-suit {
+  font-size: 10px;
+  margin-top: -1px;
+}
+
+.card-pip {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  font-size: 18px;
+  opacity: 0.9;
+}
+
+.card-sm {
+  width: 31px;
+  height: 44px;
 }
 
 .card-sm .card-rank {
-  font-size: 13px;
+  font-size: 12px;
 }
 
-.card-suit {
-  font-size: 14px;
+.card-sm .card-corner-suit {
+  font-size: 8px;
+}
+
+.card-sm .card-pip {
+  font-size: 13px;
 }
 
 .card-red {
@@ -846,15 +891,86 @@ table.stats td:nth-child(odd) {
 }
 
 .card-black {
-  color: #111;
+  color: #14181c;
 }
 
 .card-back {
-  background: repeating-linear-gradient(45deg, #1f3a8a, #1f3a8a 5px, #2a4bb5 5px, #2a4bb5 10px);
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 18px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12) 0 30%, transparent 31%),
+    repeating-linear-gradient(45deg, #17306b, #17306b 4px, #21418f 4px, #21418f 8px);
+  border-color: #10214a;
   align-items: center;
   justify-content: center;
+}
+
+.card-back-pattern {
+  margin: auto;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 16px;
+}
+
+/* ---------- Motion & feedback ---------- */
+button {
+  transition: transform 0.08s ease;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+main > * {
+  animation: view-in 0.22s ease backwards;
+}
+
+@keyframes view-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.drill-verdict.correct,
+.spot-feedback.best,
+.daily-guess.hit {
+  animation: pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.35);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.drill-verdict.wrong,
+.spot-feedback.bad,
+.daily-guess.miss {
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ---------- Action bar ---------- */
@@ -1610,4 +1726,53 @@ table.stats td:nth-child(odd) {
 .review-badge {
   color: var(--gold);
   font-size: 13px;
+}
+
+/* ---------- Lesson flow ---------- */
+.lesson-meta {
+  margin-bottom: 4px;
+}
+.module-count {
+  float: right;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12px;
+}
+.lesson-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.lesson-nav-btn {
+  max-width: 44%;
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lesson-nav-btn:hover {
+  border-color: var(--accent);
+}
+.lesson-nav-btn.primary {
+  border-color: var(--green);
+  background: rgba(46, 160, 67, 0.12);
+  text-align: right;
+}
+@media (max-width: 520px) {
+  .lesson-nav-btn {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
 }
