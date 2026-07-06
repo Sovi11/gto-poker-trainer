@@ -14,10 +14,11 @@ import {
   spr,
   ruleOfNEquity,
 } from '../engine/gtomath';
+import { solveRiverGame, closedForm, bestBettorEV, bestDefenderEV } from '../solver/rivergame';
 import { RangeGrid } from './RangeGrid';
 import { CardRow } from './Card';
 
-type Mode = 'equity' | 'charts' | 'pushfold' | 'math';
+type Mode = 'equity' | 'charts' | 'pushfold' | 'math' | 'river';
 
 export function SolverView() {
   const [mode, setMode] = useState<Mode>('equity');
@@ -36,11 +37,113 @@ export function SolverView() {
         <button className={mode === 'math' ? 'active' : ''} onClick={() => setMode('math')}>
           GTO Math
         </button>
+        <button className={mode === 'river' ? 'active' : ''} onClick={() => setMode('river')}>
+          River Solver
+        </button>
       </div>
       {mode === 'equity' && <EquityTool />}
       {mode === 'charts' && <ChartsTool />}
       {mode === 'pushfold' && <PushFoldTool />}
       {mode === 'math' && <MathTool />}
+      {mode === 'river' && <RiverSolverTool />}
+    </div>
+  );
+}
+
+function RiverSolverTool() {
+  const [pot, setPot] = useState(100);
+  const [bet, setBet] = useState(100);
+  const [yourCall, setYourCall] = useState(50); // what-if: defender call %
+  const [yourBluff, setYourBluff] = useState(50); // what-if: bettor bluff %
+
+  const params = useMemo(() => ({ pot, bet, valueFrac: 0.5 }), [pot, bet]);
+  const sol = useMemo(() => solveRiverGame(params), [params]);
+  const cf = useMemo(() => closedForm(params), [params]);
+
+  const pct = (x: number, d = 1) => `${(x * 100).toFixed(d)}%`;
+  const bluffShareOfBets = sol.bluffFreq * 0.5 === 0 ? 0 : (0.5 * sol.bluffFreq) / (0.5 * sol.betNuts + 0.5 * sol.bluffFreq);
+
+  // Exploit explorer: how much a fixed leak loses to a best response.
+  const vsYourCall = bestBettorEV(params, yourCall / 100) - sol.bettorEV; // bettor's gain vs your call freq
+  const defGainVsBluff = bestDefenderEV(params, 1, yourBluff / 100) - sol.defenderEV;
+
+  return (
+    <div className="panel">
+      <h2>River Solver</h2>
+      <p className="muted">
+        A real solver (counterfactual regret minimization) for the polarized river spot: you bet the nuts or air, villain
+        holds a bluff-catcher. It converges to the exact Nash equilibrium live in your browser — then shows you what any
+        deviation loses to a best response.
+      </p>
+
+      <div className="math-inputs">
+        <label>
+          Pot
+          <input type="number" min={1} value={pot} onChange={(e) => setPot(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <label>
+          Bet size
+          <input type="number" min={1} value={bet} onChange={(e) => setBet(Math.max(1, Number(e.target.value)))} />
+        </label>
+        <div className="math-presets">
+          {[0.33, 0.5, 0.75, 1, 1.5, 2].map((f) => (
+            <button key={f} onClick={() => setBet(Math.round(pot * f))}>
+              {f === 1 ? 'pot' : `${Math.round(f * 100)}%`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <h3>Equilibrium</h3>
+      <div className="math-grid">
+        <MathStat label="Value bet (nuts)" value={pct(sol.betNuts, 0)} note="always" />
+        <MathStat label="Bluff (with air)" value={pct(sol.bluffFreq)} note={`${pct(bluffShareOfBets)} of all bets are bluffs`} />
+        <MathStat label="Villain calls (MDF)" value={pct(sol.callFreq)} note={`closed form: ${pct(cf.callFreq)}`} />
+        <MathStat label="Bettor EV" value={sol.bettorEV.toFixed(1)} note={`of the ${pot} pot`} />
+        <MathStat label="Exploitability" value={pct(sol.exploitability, 2)} note={`of the pot · ${sol.iterations.toLocaleString()} CFR iters`} />
+      </div>
+
+      <h3>Exploit explorer</h3>
+      <p className="muted">Drag a strategy off equilibrium and see what a perfect opponent extracts from the leak.</p>
+
+      <div className="exploit-row">
+        <label>
+          You defend (call) <strong>{yourCall}%</strong> of the time
+          <input type="range" min={0} max={100} value={yourCall} onChange={(e) => setYourCall(Number(e.target.value))} />
+        </label>
+        <div className={`exploit-verdict ${vsYourCall > 0.5 ? 'leak' : 'sound'}`}>
+          {vsYourCall > 0.5 ? (
+            <>
+              Best response: {yourCall / 100 < cf.callFreq ? 'bluff every hand' : 'never bluff, value bet only'} →
+              villain gains <strong>+{vsYourCall.toFixed(1)}</strong> per hand over equilibrium.
+            </>
+          ) : (
+            <>At MDF — villain’s bluffs and value make the same profit no matter what they do.</>
+          )}
+        </div>
+      </div>
+
+      <div className="exploit-row">
+        <label>
+          You bluff <strong>{yourBluff}%</strong> of your air
+          <input type="range" min={0} max={100} value={yourBluff} onChange={(e) => setYourBluff(Number(e.target.value))} />
+        </label>
+        <div className={`exploit-verdict ${defGainVsBluff > 0.5 ? 'leak' : 'sound'}`}>
+          {defGainVsBluff > 0.5 ? (
+            <>
+              Best response: {yourBluff / 100 > cf.bluffFreq ? 'call every bluff-catcher' : 'fold every bluff-catcher'} →
+              villain gains <strong>+{defGainVsBluff.toFixed(1)}</strong> per hand over equilibrium.
+            </>
+          ) : (
+            <>Balanced — your value-to-bluff ratio makes villain indifferent between calling and folding.</>
+          )}
+        </div>
+      </div>
+
+      <p className="muted small">
+        Fixed 50/50 nuts-or-air range. The lesson: equilibrium isn’t about winning the maximum — it’s the strategy that
+        concedes nothing to any counter-strategy. Suppress your leaks, then exploit theirs.
+      </p>
     </div>
   );
 }

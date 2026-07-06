@@ -2129,3 +2129,42 @@ h3,
 .seat .seat-name {
   color: #e9e6da;
 }
+
+/* ---------- River solver: exploit explorer ---------- */
+.exploit-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 340px) 1fr;
+  gap: 18px;
+  align-items: center;
+  margin: 14px 0;
+}
+.exploit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text);
+}
+.exploit-row input[type='range'] {
+  width: 100%;
+  accent-color: var(--green);
+}
+.exploit-verdict {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  font-size: 14px;
+}
+.exploit-verdict.leak {
+  border-color: color-mix(in srgb, var(--red) 45%, transparent);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+}
+.exploit-verdict.sound {
+  border-color: color-mix(in srgb, var(--green-bright) 45%, transparent);
+  background: color-mix(in srgb, var(--green-bright) 8%, transparent);
+}
+@media (max-width: 700px) {
+  .exploit-row {
+    grid-template-columns: 1fr;
+  }
+}
