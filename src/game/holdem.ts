@@ -19,6 +19,7 @@ export interface Player {
   allIn: boolean;
   hasActed: boolean; // acted since last raise this street
   mayRaise: boolean; // betting is open to this player (cleared by an incomplete all-in)
+  lastAction: string | null; // display label for the seat ("CALL 40", "FOLD", …)
 }
 
 export interface HandConfig {
@@ -73,6 +74,7 @@ export class HoldemHand {
       allIn: false,
       hasActed: false,
       mayRaise: true,
+      lastAction: null,
     }));
 
     this.deal();
@@ -163,12 +165,15 @@ export class HoldemHand {
 
     if (kind === 'fold') {
       p.folded = true;
+      p.lastAction = 'FOLD';
       this.log.push({ text: `${p.name} folds.`, kind: 'action' });
     } else if (kind === 'check') {
+      p.lastAction = 'CHECK';
       this.log.push({ text: `${p.name} checks.`, kind: 'action' });
     } else if (kind === 'call') {
       const amt = Math.min(toCall, p.stack);
       this.commit(p, amt);
+      p.lastAction = `CALL ${amt}`;
       this.log.push({ text: `${p.name} calls ${amt}.`, kind: 'action' });
     } else if (kind === 'raise') {
       const target = Math.max(raiseTo ?? this.currentBet + this.minRaise, this.currentBet + this.minRaise);
@@ -180,6 +185,7 @@ export class HoldemHand {
       if (raiseIncrement <= 0) {
         // All-in for less than a full call: an undercall, not a raise. The
         // current bet is unchanged and the action is not reopened.
+        p.lastAction = 'ALL-IN';
         this.log.push({ text: `${p.name} calls ${add} and is all-in.`, kind: 'action' });
       } else {
         const fullRaise = raiseIncrement >= this.minRaise;
@@ -203,6 +209,7 @@ export class HoldemHand {
         }
         const verb = toCall <= 0 ? 'bets' : 'raises to';
         const allInTag = p.allIn ? ' and is all-in' : '';
+        p.lastAction = p.allIn ? 'ALL-IN' : `${toCall <= 0 ? 'BET' : 'RAISE'} ${capped}`;
         this.log.push({ text: `${p.name} ${verb} ${capped}${allInTag}.`, kind: 'action' });
       }
     }
@@ -265,6 +272,7 @@ export class HoldemHand {
       p.committed = 0;
       p.hasActed = false;
       p.mayRaise = true;
+      if (!p.folded) p.lastAction = null; // folds stay visible for the hand
     }
     this.currentBet = 0;
     this.minRaise = this.bigBlind;

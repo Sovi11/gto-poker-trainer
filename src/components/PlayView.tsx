@@ -170,43 +170,52 @@ function Table({ botIds, onQuit }: { botIds: string[]; onQuit: () => void }) {
         </button>
       </div>
 
-      <div className="poker-table">
-        <div className="board-area">
-          <div className="board-label">Board</div>
-          <CardRow cards={padBoard(hand.board)} />
+      <div className="table-felt">
+        <div className="table-center">
+          <CardRow cards={padBoard(hand.board)} dealt />
           <div className="pot-chip">Pot {hand.pot}</div>
         </div>
 
-        <div className="seats">
-          {hand.players.map((p, i) => {
-            const isCurrent = hand.toActIndex === i && !hand.finished;
-            const isWinner = showdown && hand.winners.includes(i);
-            const reveal = p.isHuman || showdown;
-            return (
-              <div key={p.id} className={`seat ${p.folded ? 'folded' : ''} ${isCurrent ? 'to-act' : ''} ${isWinner ? 'winner' : ''}`}>
-                <div className="seat-head">
-                  <span className="seat-name">
-                    {!p.isHuman && botById(p.bot!.id).avatar} {p.name}
-                    {hand.buttonIndex === i && <span className="dealer-btn">D</span>}
-                  </span>
-                  <span className="seat-stack">{p.stack}</span>
-                </div>
-                <div className="seat-cards">
-                  {p.hole ? (
-                    reveal ? (
-                      <CardRow cards={p.hole} small />
-                    ) : (
-                      <CardRow cards={[null, null]} small />
-                    )
-                  ) : null}
-                </div>
-                {p.committed > 0 && <div className="seat-bet">bet {p.committed}</div>}
-                {p.folded && <div className="seat-status">folded</div>}
-                {isWinner && <div className="seat-status win">winner</div>}
+        {hand.players.map((p, i) => {
+          const isCurrent = hand.toActIndex === i && !hand.finished;
+          const isWinner = showdown && hand.winners.includes(i);
+          const reveal = p.isHuman || showdown;
+          const pos = seatPosition(i, hand.players.length);
+          return (
+            <div
+              key={p.id}
+              className={`seat seat-abs ${i === 0 ? 'seat-hero' : ''} ${p.folded ? 'folded' : ''} ${isCurrent ? 'to-act' : ''} ${isWinner ? 'winner' : ''}`}
+              style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+            >
+              <div className="seat-head">
+                <span className="seat-name">
+                  {!p.isHuman && botById(p.bot!.id).avatar} {p.name}
+                  {hand.buttonIndex === i && <span className="dealer-btn">D</span>}
+                </span>
+                <span className="seat-stack">{p.stack}</span>
               </div>
-            );
-          })}
-        </div>
+              <div className="seat-cards">
+                {p.hole ? (
+                  reveal ? (
+                    <CardRow cards={p.hole} small />
+                  ) : (
+                    <CardRow cards={[null, null]} small />
+                  )
+                ) : null}
+              </div>
+              {p.committed > 0 && <div className="seat-bet">{p.committed}</div>}
+              {isCurrent && !p.isHuman && (
+                <div className="seat-thinking" aria-label="thinking">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
+              {p.lastAction && !isCurrent && <div className={`action-badge ${p.lastAction === 'FOLD' ? 'is-fold' : ''}`}>{p.lastAction}</div>}
+              {isWinner && <div className="seat-status win">WINS</div>}
+            </div>
+          );
+        })}
       </div>
 
       {legal && (
@@ -285,6 +294,39 @@ function HandLog({ hand, hero }: { hand: HoldemHand; hero: Player }) {
       </div>
     </div>
   );
+}
+
+// Seat coordinates (%) around the oval. Index 0 is always the hero (bottom
+// center); bots spread along the top arc, left to right.
+function seatPosition(index: number, count: number): { x: number; y: number } {
+  if (index === 0) return { x: 50, y: 84 };
+  const arcs: Record<number, { x: number; y: number }[]> = {
+    2: [{ x: 50, y: 12 }],
+    3: [
+      { x: 26, y: 14 },
+      { x: 74, y: 14 },
+    ],
+    4: [
+      { x: 14, y: 28 },
+      { x: 50, y: 10 },
+      { x: 86, y: 28 },
+    ],
+    5: [
+      { x: 11, y: 34 },
+      { x: 30, y: 11 },
+      { x: 70, y: 11 },
+      { x: 89, y: 34 },
+    ],
+    6: [
+      { x: 9, y: 38 },
+      { x: 26, y: 12 },
+      { x: 50, y: 8 },
+      { x: 74, y: 12 },
+      { x: 91, y: 38 },
+    ],
+  };
+  const arc = arcs[count] ?? arcs[6];
+  return arc[Math.min(index - 1, arc.length - 1)];
 }
 
 function padBoard(board: number[]): (number | null)[] {

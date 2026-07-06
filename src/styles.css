@@ -1969,3 +1969,163 @@ h3,
   font-family: var(--font-display);
   font-weight: 600;
 }
+
+/* ---------- Play table v2: the felt oval ---------- */
+.table-felt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  min-height: 340px;
+  border-radius: 50% / 42%;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.016) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 5px),
+    radial-gradient(90% 110% at 50% 30%, var(--felt), var(--felt-edge));
+  border: 7px solid #0a1f1a;
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.4),
+    0 10px 30px rgba(0, 0, 0, 0.35);
+  margin: 42px 0 8px;
+}
+
+[data-theme='light'] .table-felt {
+  border-color: #6b5636;
+}
+
+.table-center {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.seat-abs {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  min-width: 128px;
+  max-width: 160px;
+  z-index: 2;
+}
+
+.seat-abs.to-act {
+  z-index: 3;
+}
+
+.seat-bet {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -24px;
+  background: #0e1512;
+  color: var(--gold);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.seat-abs .seat-bet {
+  bottom: -22px;
+}
+
+/* hero seat sits low; its chips/badges go above it instead */
+.seat-hero .seat-bet {
+  bottom: auto;
+  top: -24px;
+}
+
+.seat-thinking {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -22px;
+  display: flex;
+  gap: 4px;
+}
+
+.seat-thinking span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: think 1s ease-in-out infinite;
+}
+
+.seat-thinking span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.seat-thinking span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+@keyframes think {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+.action-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -22px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+  animation: pop-in 0.25s ease;
+}
+
+.action-badge.is-fold {
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.seat-hero .action-badge,
+.seat-hero .seat-thinking {
+  bottom: auto;
+  top: -22px;
+}
+
+.seat.winner {
+  animation: winner-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes winner-glow {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.55), 0 0 22px rgba(212, 175, 55, 0.25); }
+  50% { box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.9), 0 0 34px rgba(212, 175, 55, 0.5); }
+}
+
+@media (max-width: 700px) {
+  .table-felt {
+    aspect-ratio: auto;
+    height: 420px;
+    border-radius: 26px;
+  }
+  .seat-abs {
+    min-width: 104px;
+    max-width: 124px;
+  }
+}
+
+/* Seats are dark plaques in both themes — force light text inside them. */
+.seat {
+  color: #e9e6da;
+}
+.seat .seat-stack {
+  color: #d4af37;
+}
+.seat .seat-name {
+  color: #e9e6da;
+}
