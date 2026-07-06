@@ -104,7 +104,7 @@ export function LearnView() {
                 Next: {next.title} →
               </button>
             ) : (
-              <span className="muted">🎉 That’s the whole course.</span>
+              <span className="muted">That’s the whole course — go print.</span>
             )}
           </div>
         </article>

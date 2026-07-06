@@ -1,62 +1,68 @@
 :root {
-  --bg: #0c1014;
-  --bg-soft: #131a21;
-  --panel: #182029;
-  --panel-2: #1e2832;
-  --border: #2a3744;
-  --text: #e6edf3;
-  --muted: #8a9bab;
-  --green: #2ea043;
-  --green-bright: #3fb950;
-  --red: #e5534b;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Card-room dark: green-black felt, warm text, brass accent. */
+  --bg: #0d1210;
+  --bg-soft: #121a16;
+  --panel: #151d18;
+  --panel-2: #1b2620;
+  --border: #28352c;
+  --text: #eae7dc;
+  --muted: #93a094;
+  --green: #2b9348;
+  --green-bright: #3fb95f;
+  --red: #d95757;
   --gold: #d4af37;
-  --accent: #58a6ff;
+  --accent: #c9a768;
+  --teal: #4cb8a4;
   --felt: #15463a;
   --felt-edge: #0d2b24;
   --shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-  --input-bg: #0c1218;
-  --body-glow: #16202b;
-  --topbar-a: #11181f;
-  --topbar-b: #0c1116;
-  --selected-bg: #1b2a3a;
-  --cell-bg: #10171e;
-  --cell-text: #54636f;
-  --cell-border: #1b2630;
-  --cell-bg-alt: #16202a;
+  --input-bg: #0e1512;
+  --body-glow: #14201a;
+  --topbar-a: #101713;
+  --topbar-b: #0c110e;
+  --selected-bg: #23301f;
+  --cell-bg: #121a15;
+  --cell-text: #5b6b5e;
+  --cell-border: #223027;
+  --cell-bg-alt: #182219;
   --panel-sheen: rgba(255, 255, 255, 0.025);
-  --glow-a: rgba(46, 160, 67, 0.07);
-  --glow-b: rgba(212, 175, 55, 0.045);
+  --glow-a: rgba(43, 147, 72, 0.08);
+  --glow-b: rgba(212, 175, 55, 0.05);
 }
 
-/* Light theme: warm ivory paper, same green/gold identity, softer shadows. */
+/* Light: ivory linen card room, same green/gold identity. */
 [data-theme='light'] {
-  --bg: #efede6;
-  --bg-soft: #e7e4da;
-  --panel: #fbfaf6;
-  --panel-2: #f1efe7;
-  --border: #d9d4c6;
-  --text: #20262d;
-  --muted: #68727d;
-  --green: #238636;
-  --green-bright: #1f7a30;
-  --red: #c2382f;
-  --gold: #9a7b1e;
-  --accent: #2f6feb;
+  --bg: #f0ede3;
+  --bg-soft: #e8e4d6;
+  --panel: #fbfaf4;
+  --panel-2: #f2efe4;
+  --border: #d8d2bd;
+  --text: #232a24;
+  --muted: #6d7a6e;
+  --green: #22803c;
+  --green-bright: #1d7434;
+  --red: #bf4040;
+  --gold: #96781c;
+  --accent: #8a6f35;
+  --teal: #22796a;
   --felt: #1d6b50;
   --felt-edge: #12503a;
-  --shadow: 0 4px 18px rgba(60, 55, 40, 0.14);
+  --shadow: 0 4px 18px rgba(64, 58, 40, 0.14);
   --input-bg: #ffffff;
-  --body-glow: #e4e9e2;
-  --topbar-a: #faf9f4;
-  --topbar-b: #f1efe7;
-  --selected-bg: #e3ecfa;
-  --cell-bg: #e9e6dc;
-  --cell-text: #8a94a0;
-  --cell-border: #d9d4c6;
-  --cell-bg-alt: #efece2;
+  --body-glow: #e6e9dd;
+  --topbar-a: #faf8f0;
+  --topbar-b: #f1eee2;
+  --selected-bg: #e9ead8;
+  --cell-bg: #e9e5d5;
+  --cell-text: #949c8f;
+  --cell-border: #d8d2bd;
+  --cell-bg-alt: #efebdc;
   --panel-sheen: rgba(255, 255, 255, 0.5);
-  --glow-a: rgba(35, 134, 54, 0.05);
-  --glow-b: rgba(154, 123, 30, 0.05);
+  --glow-a: rgba(34, 128, 60, 0.05);
+  --glow-b: rgba(150, 120, 28, 0.05);
 }
 
 * {
@@ -76,7 +82,7 @@ body {
     radial-gradient(1100px 650px at 85% -8%, var(--glow-a), transparent 55%),
     radial-gradient(1200px 800px at 70% -10%, var(--body-glow), var(--bg));
   color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-ui);
   font-size: 15px;
   line-height: 1.55;
 }
@@ -116,8 +122,17 @@ body {
 
 .brand h1 {
   margin: 0;
-  font-size: 20px;
-  letter-spacing: 0.3px;
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand h1 .pip {
+  color: var(--gold);
+  font-size: 15px;
+  margin: 0 3px;
+  vertical-align: 2px;
 }
 
 .tagline {
@@ -134,14 +149,15 @@ body {
   background: transparent;
   border: 1px solid transparent;
   color: var(--muted);
-  padding: 9px 16px;
-  border-radius: 9px;
+  padding: 9px 15px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 7px;
   transition: all 0.15s;
 }
 
@@ -183,8 +199,12 @@ main {
   box-shadow: var(--shadow);
 }
 
-.panel h2 {
+.panel h2,
+.lesson-body h2 {
   margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .muted {
@@ -1864,4 +1884,88 @@ main > * {
 }
 .theme-toggle:hover {
   border-color: var(--accent);
+}
+
+
+/* ---------- Daily hero (v2 identity) ---------- */
+.daily-title {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.daily-no {
+  font-family: var(--font-display);
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: lining-nums;
+}
+.daily-title h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+}
+.streak-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.streak-num {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.streak-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+/* review tag, de-emojied */
+.drill-review-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+/* moral line as a quiet quote instead of an emoji bullet */
+.spot-moral {
+  border-left: 3px solid var(--gold);
+  padding-left: 12px;
+}
+
+/* theme toggle icon */
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.guess-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.guess-dot.hit {
+  background: var(--green-bright);
+}
+.guess-dot.miss {
+  background: var(--red);
+}
+
+/* display face for remaining headings */
+h3,
+.bot-card h3,
+.chart-main h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
 }

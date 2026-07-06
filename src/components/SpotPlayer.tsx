@@ -18,7 +18,7 @@ export function SpotPlayer({ spot, onAnswered }: { spot: Spot; onAnswered?: () =
   return (
     <div className="spot">
       <div className="spot-head">
-        <span className="spot-badge">🃏 Illustrated hand</span>
+        <span className="spot-badge">♠ Play the spot</span>
         <span className="muted">{spot.scenario}</span>
       </div>
 
@@ -94,7 +94,7 @@ export function SpotPlayer({ spot, onAnswered }: { spot: Spot; onAnswered?: () =
               Best line: <strong>{spot.options[bestIdx].label}</strong> — {spot.options[bestIdx].because}
             </p>
           )}
-          <p className="spot-moral">💡 {spot.moral}</p>
+          <p className="spot-moral">{spot.moral}</p>
           <button className="link-btn" onClick={() => setChoice(null)}>
             ↺ Try again
           </button>

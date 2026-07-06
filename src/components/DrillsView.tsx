@@ -107,9 +107,9 @@ export function DrillsView() {
               <span className="muted"> · {pct}%</span>
             </div>
             <div className="drill-score-sub">
-              <span className={score.streak >= 3 ? 'streak-hot' : ''}>🔥 {score.streak} streak</span>
+              <span className={score.streak >= 3 ? 'streak-hot' : ''}>streak {score.streak}</span>
               <span className="muted">best {score.best}</span>
-              {reviewCount(scheduler) > 0 && <span className="review-badge">🔁 {reviewCount(scheduler)} to review</span>}
+              {reviewCount(scheduler) > 0 && <span className="review-badge">{reviewCount(scheduler)} to review</span>}
             </div>
             {score.total > 0 && (
               <button className="link-btn drill-reset" onClick={resetStats}>
@@ -144,7 +144,7 @@ export function DrillsView() {
       <div className="panel drill-card">
         <div className="drill-tags">
           <div className={`drill-type-tag cat-${drill.category.toLowerCase()}`}>{drill.category}</div>
-          {isReview && <div className="drill-review-tag">🔁 review — you missed this type before</div>}
+          {isReview && <div className="drill-review-tag">review · you missed this type before</div>}
         </div>
         <p className="drill-prompt">{drill.prompt}</p>
 

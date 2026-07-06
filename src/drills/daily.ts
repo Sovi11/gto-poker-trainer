@@ -64,5 +64,5 @@ export function nextStreak(prev: DailyStreak, day: number): DailyStreak {
 export function shareText(day: number, guesses: GuessRecord[], solved: boolean, maxGuesses: number, url: string): string {
   const grid = guesses.map((g) => (g.hit ? '🟩' : '🟥')).join('');
   const score = solved ? `${guesses.length}` : 'X';
-  return `♠ GTO Daily #${day} ${score}/${maxGuesses}\n${grid}\n${url}`;
+  return `♠ Fold Call Jam №${day} ${score}/${maxGuesses}\n${grid}\n${url}`;
 }

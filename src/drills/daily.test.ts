@@ -84,7 +84,7 @@ describe('shareText', () => {
 
   it('renders the Wordle-style grid and score', () => {
     const t = shareText(37, g([false, true]), true, 4, 'https://example.com');
-    expect(t).toContain('♠ GTO Daily #37 2/4');
+    expect(t).toContain('♠ Fold Call Jam №37 2/4');
     expect(t).toContain('🟥🟩');
     expect(t).toContain('https://example.com');
   });

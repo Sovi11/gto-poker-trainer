@@ -120,13 +120,17 @@ export function DailyView({ onGoDrills }: { onGoDrills?: () => void }) {
   return (
     <div className="view">
       <div className="panel daily-head">
-        <div>
-          <h2>♠ Daily Puzzle #{day}</h2>
-          <p className="muted">One puzzle a day, the same for everyone. Solve it, keep the streak, share the grid.</p>
+        <div className="daily-title">
+          <span className="daily-no">№{day}</span>
+          <div>
+            <h2>Daily Puzzle</h2>
+            <p className="muted">One puzzle a day, the same for everyone. Solve it, keep the streak, share the grid.</p>
+          </div>
         </div>
-        <div className="daily-streak">
-          <span className={streak.current > 0 ? 'streak-hot' : ''}>🔥 {streak.current} day streak</span>
-          <span className="muted">best {streak.best}</span>
+        <div className="streak-counter">
+          <span className="streak-num">{streak.current}</span>
+          <span className="streak-label">day streak</span>
+          <span className="muted small">best {streak.best}</span>
         </div>
       </div>
 
@@ -147,10 +151,10 @@ export function DailyView({ onGoDrills }: { onGoDrills?: () => void }) {
           <div className="daily-guesses">
             {progress.guesses.map((g, i) => (
               <div key={i} className={`daily-guess ${g.hit ? 'hit' : 'miss'}`}>
-                <span>{g.hit ? '🟩' : '🟥'}</span>
+                <span className={`guess-dot ${g.hit ? 'hit' : 'miss'}`} aria-hidden="true" />
                 <span>{g.label}</span>
-                {g.hint === 'higher' && <span className="daily-hint">⬆ higher</span>}
-                {g.hint === 'lower' && <span className="daily-hint">⬇ lower</span>}
+                {g.hint === 'higher' && <span className="daily-hint">↑ higher</span>}
+                {g.hint === 'lower' && <span className="daily-hint">↓ lower</span>}
               </div>
             ))}
           </div>
@@ -201,7 +205,7 @@ export function DailyView({ onGoDrills }: { onGoDrills?: () => void }) {
             ))}
             <div className="btn-row">
               <button className="primary" onClick={copyShare}>
-                {copied ? '✓ Copied!' : 'Share 📋'}
+                {copied ? '✓ Copied!' : 'Copy result'}
               </button>
               {onGoDrills && (
                 <button onClick={onGoDrills}>Keep grinding → Drills</button>
