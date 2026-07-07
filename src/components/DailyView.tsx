@@ -91,7 +91,11 @@ export function DailyView({ onGoDrills }: { onGoDrills?: () => void }) {
   };
 
   const copyShare = async () => {
-    const url = typeof window !== 'undefined' ? window.location.origin : '';
+    // origin + Vite base so the link survives subpath hosting (GitHub Pages)
+    const url =
+      typeof window !== 'undefined'
+        ? (window.location.origin + import.meta.env.BASE_URL).replace(/\/$/, '')
+        : '';
     const text = shareText(day, progress.guesses, progress.solved, maxGuesses, url);
     try {
       await navigator.clipboard.writeText(text);

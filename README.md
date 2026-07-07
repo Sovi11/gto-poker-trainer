@@ -1,10 +1,14 @@
-# ♠ GTO Poker Trainer
+# ♠ Fold Call or Jam
 
 Learn the math. Grind the bots. Print.
 
 A single-page web app for learning **Game-Theory-Optimal (GTO) poker** and putting it
 into practice against AI opponents — each with a distinct, exploitable personality.
 Everything runs in the browser; no backend, no sign-up, no network calls.
+
+**▶ Play it live: https://sovi11.github.io/gto-poker-trainer/**
+
+Free and open-source (MIT). Everything runs in your browser — no backend, no sign-up, no tracking.
 
 ## Features
 
