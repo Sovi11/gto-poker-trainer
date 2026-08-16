@@ -112,7 +112,36 @@ src/
 
 CI (`.github/workflows/ci.yml`) runs typecheck → test → build on every push/PR.
 
+## PWA (installable app)
+
+The site is installable and works offline via `vite-plugin-pwa` (Workbox). The
+manifest and service worker are **generated at build time** — there is no
+committed `manifest.webmanifest` or `sw.js`; configure them in `vite.config.ts`.
+
+- **Icons** live in `public/`. The PNGs are generated from `public/icon.svg` and
+  `public/icon-maskable.svg` (the maskable one keeps the spade inside the centre
+  60% so Android's circular crop never clips it). To regenerate after changing a
+  source SVG:
+  ```
+  npm i -D sharp
+  node -e "const s=require('sharp'),f=require('fs');[['public/icon.svg','public/pwa-192.png',192],['public/icon.svg','public/pwa-512.png',512],['public/icon-maskable.svg','public/maskable-512.png',512],['public/icon.svg','public/apple-touch-icon.png',180],['public/icon.svg','public/favicon-32.png',32]].forEach(async([i,o,z])=>{await s(f.readFileSync(i),{density:400}).resize(z,z).png().toFile(o)})"
+  npm uninstall sharp
+  ```
+  `sharp` is intentionally *not* a dependency — it's a heavy one-off tool.
+- **iOS** ignores the web manifest, so the `apple-touch-icon` /
+  `apple-mobile-web-app-*` tags in `index.html` are what make the home-screen
+  install work there. Don't delete them.
+- Service workers only run on the **production build** (`devOptions.enabled`
+  is false) and require HTTPS or localhost — so test with `npm run preview`,
+  never `npm run dev`.
+
 ## Gotchas
+
+- **`vite preview` runs in serve mode**, so `command === 'build'` is false there.
+  The base is keyed on `command === 'build' || isPreview` — without the
+  `isPreview` half, preview serves at `/` while the built HTML points at
+  `/gto-poker-trainer/`, every asset 404s into the SPA fallback, and preview
+  silently tests nothing.
 
 - `noUnusedLocals` / `noUnusedParameters` are on — dead imports break the build.
 - Preflop bot decisions are a cheap percentile lookup, but **postflop** decisions run Monte Carlo

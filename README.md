@@ -10,6 +10,9 @@ Everything runs in the browser; no backend, no sign-up, no network calls.
 
 Free and open-source (MIT). Everything runs in your browser — no backend, no sign-up, no tracking.
 
+**Installable.** On phone or desktop, hit **Install** in the top bar (or Share → Add to Home Screen
+on iOS) and it runs as a standalone app — offline included.
+
 ## Features
 
 ### 📅 Daily Puzzle
