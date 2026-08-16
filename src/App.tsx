@@ -6,6 +6,7 @@ import { BotsView } from './components/BotsView';
 import { DrillsView } from './components/DrillsView';
 import { DailyView } from './components/DailyView';
 import { useTheme } from './lib/useTheme';
+import { InstallButton } from './components/InstallButton';
 
 type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play';
 
@@ -61,6 +62,7 @@ export default function App() {
               {t.label}
             </button>
           ))}
+          <InstallButton />
           <button
             className="theme-toggle"
             onClick={toggle}
