@@ -15,10 +15,11 @@ import {
   ruleOfNEquity,
 } from '../engine/gtomath';
 import { solveRiverGame, closedForm, bestBettorEV, bestDefenderEV } from '../solver/rivergame';
+import { TreeSolverView } from './TreeSolverView';
 import { RangeGrid } from './RangeGrid';
 import { CardRow } from './Card';
 
-type Mode = 'equity' | 'charts' | 'pushfold' | 'math' | 'river';
+type Mode = 'equity' | 'charts' | 'pushfold' | 'math' | 'river' | 'tree';
 
 export function SolverView() {
   const [mode, setMode] = useState<Mode>('equity');
@@ -40,12 +41,16 @@ export function SolverView() {
         <button className={mode === 'river' ? 'active' : ''} onClick={() => setMode('river')}>
           River Solver
         </button>
+        <button className={mode === 'tree' ? 'active' : ''} onClick={() => setMode('tree')}>
+          Tree Solver
+        </button>
       </div>
       {mode === 'equity' && <EquityTool />}
       {mode === 'charts' && <ChartsTool />}
       {mode === 'pushfold' && <PushFoldTool />}
       {mode === 'math' && <MathTool />}
       {mode === 'river' && <RiverSolverTool />}
+      {mode === 'tree' && <TreeSolverView />}
     </div>
   );
 }

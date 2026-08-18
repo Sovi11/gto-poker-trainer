@@ -2233,3 +2233,193 @@ h3,
     font-size: 11.5px;
   }
 }
+
+/* ---------- Tree solver ---------- */
+.ts-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.ts-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.ts-form .ts-wide {
+  grid-column: 1 / -1;
+}
+.ts-form input {
+  padding: 9px 11px;
+  font-size: 14px;
+  font-family: var(--font-ui);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+}
+.ts-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.ts-board {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 18px 0 6px;
+}
+.ts-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  margin: 18px 0 10px;
+  padding: 10px 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.ts-crumb {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+.ts-crumb:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+.ts-reach {
+  font-weight: 400;
+}
+.ts-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+.ts-action {
+  text-align: left;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+.ts-action:hover {
+  border-color: var(--accent);
+}
+.ts-action-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+.ts-action-label {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.ts-action-freq {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.ts-bar {
+  display: block;
+  height: 6px;
+  background: var(--cell-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ts-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--muted);
+}
+.ts-action.aggro .ts-bar-fill { background: var(--green-bright); }
+.ts-action.passive .ts-bar-fill { background: var(--accent); }
+.ts-action.fold .ts-bar-fill { background: var(--red); }
+.ts-action.aggro .ts-action-freq { color: var(--green-bright); }
+.ts-action.passive .ts-action-freq { color: var(--accent); }
+.ts-action.fold .ts-action-freq { color: var(--red); }
+
+.ts-terminal {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-soft);
+}
+.ts-terminal p { margin: 6px 0 0; }
+
+.ts-hands-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ts-hands-head h4 { margin: 0; }
+.ts-legend {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ts-key {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.ts-key.aggro { color: var(--green-bright); border-color: color-mix(in srgb, var(--green-bright) 45%, transparent); }
+.ts-key.passive { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.ts-key.fold { color: var(--red); border-color: color-mix(in srgb, var(--red) 45%, transparent); }
+
+.ts-hand-row {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 3px 0;
+}
+.ts-hand-cards {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.ts-mix {
+  display: flex;
+  height: 15px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--cell-bg);
+}
+.ts-mix-seg { display: block; height: 100%; }
+.ts-mix-seg.aggro { background: var(--green-bright); }
+.ts-mix-seg.passive { background: var(--accent); }
+.ts-mix-seg.fold { background: var(--red); }
+
+@media (max-width: 520px) {
+  .ts-form { grid-template-columns: 1fr 1fr; }
+  .ts-hand-row { grid-template-columns: 56px 1fr; }
+}
+.ts-warn {
+  margin: 10px 0 0;
+  padding: 10px 13px;
+  font-size: 13px;
+  border-radius: 9px;
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: color-mix(in srgb, var(--gold) 9%, transparent);
+}
