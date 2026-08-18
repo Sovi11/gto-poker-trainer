@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SolverView } from './components/SolverView';
 import { PlayView } from './components/PlayView';
 import { LearnView } from './components/LearnView';
@@ -7,8 +7,11 @@ import { DrillsView } from './components/DrillsView';
 import { DailyView } from './components/DailyView';
 import { useTheme } from './lib/useTheme';
 import { InstallButton } from './components/InstallButton';
+import { StatsView } from './components/StatsView';
+import { ProfileGate } from './components/ProfileGate';
+import { activateProfile, getActiveProfileId, initProfileScope, listProfiles } from './lib/profiles';
 
-type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play';
+type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play' | 'stats';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'daily', label: 'Daily' },
@@ -17,6 +20,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'solver', label: 'Solver' },
   { id: 'bots', label: 'Bots' },
   { id: 'play', label: 'Play' },
+  { id: 'stats', label: 'Stats' },
 ];
 
 function ThemeIcon({ theme }: { theme: 'dark' | 'light' }) {
@@ -35,7 +39,17 @@ function ThemeIcon({ theme }: { theme: 'dark' | 'light' }) {
 }
 
 export default function App() {
+  // Resolve the stored profile before any child reads scoped storage.
+  const [profileId, setProfileId] = useState<string | null>(() => initProfileScope());
+
+  if (!profileId) return <ProfileGate onPick={setProfileId} />;
+  // Remount everything on profile switch so all persisted state re-reads.
+  return <Trainer key={profileId} onSwitch={() => { activateProfile(null); setProfileId(null); }} />;
+}
+
+function Trainer({ onSwitch }: { onSwitch: () => void }) {
   const [tab, setTab] = useState<Tab>('daily');
+  const me = useMemo(() => listProfiles().find((p) => p.id === getActiveProfileId()), []);
   const { theme, toggle } = useTheme();
   const [playBot, setPlayBot] = useState<string | null>(null);
 
@@ -62,6 +76,12 @@ export default function App() {
               {t.label}
             </button>
           ))}
+          {me && (
+            <button className="who" onClick={onSwitch} title="Switch player">
+              <span className="who-avatar">{me.avatar}</span>
+              <span className="who-name">{me.name}</span>
+            </button>
+          )}
           <InstallButton />
           <button
             className="theme-toggle"
@@ -81,6 +101,7 @@ export default function App() {
         {tab === 'solver' && <SolverView />}
         {tab === 'bots' && <BotsView onPlay={goPlay} />}
         {tab === 'play' && <PlayView initialBotId={playBot} />}
+        {tab === 'stats' && <StatsView />}
       </main>
 
       <footer className="footer">

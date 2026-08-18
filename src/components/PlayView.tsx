@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { HoldemHand, HandConfig, Player } from '../game/holdem';
 import { BOTS, botById } from '../bots/personalities';
 import { CardRow } from './Card';
+import { recordHand } from '../lib/handHistory';
 
 const START_STACK = 1000;
 const SB = 5;
@@ -82,6 +83,10 @@ function Table({ botIds, onQuit }: { botIds: string[]; onQuit: () => void }) {
   ]);
   const buttonRef = useRef(0);
   const handRef = useRef<HoldemHand | null>(null);
+  // Hero's stack when the hand was dealt, and a latch so a finished hand is
+  // only written to the history once (the driver effect runs every render).
+  const heroStartRef = useRef(START_STACK);
+  const recordedRef = useRef(false);
   const [, setTick] = useState(0);
   const [handNum, setHandNum] = useState(0);
   const [raiseTo, setRaiseTo] = useState(BB * 3);
@@ -104,6 +109,8 @@ function Table({ botIds, onQuit }: { botIds: string[]; onQuit: () => void }) {
       buttonIndex: buttonRef.current % seatsRef.current.length,
       seed: (Date.now() ^ (handNum * 2654435761)) >>> 0,
     };
+    heroStartRef.current = seatsRef.current[0].stack;
+    recordedRef.current = false;
     handRef.current = new HoldemHand(cfg);
     setHandNum((n) => n + 1);
     rerender();
@@ -122,6 +129,23 @@ function Table({ botIds, onQuit }: { botIds: string[]; onQuit: () => void }) {
       // persist stacks when a hand ends
       if (hand?.finished) {
         hand.players.forEach((p, i) => (seatsRef.current[i].stack = p.stack));
+        if (!recordedRef.current) {
+          recordedRef.current = true;
+          const hero = hand.players[0];
+          const heroIdx = hand.players.findIndex((p) => p.isHuman);
+          recordHand({
+            ts: Date.now(),
+            hole: hero.hole ?? [0, 0],
+            board: [...hand.board],
+            bots: [...botIds],
+            net: hero.stack - heroStartRef.current,
+            bigBlind: BB,
+            invested: hero.totalCommitted,
+            sawShowdown: hand.players.filter((p) => !p.folded).length > 1,
+            won: hand.winners.includes(heroIdx),
+            log: hand.log.map((l) => ({ text: l.text, kind: l.kind })),
+          });
+        }
       }
       return;
     }

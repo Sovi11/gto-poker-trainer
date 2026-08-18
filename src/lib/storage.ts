@@ -45,3 +45,38 @@ export function removeKey(key: string): void {
     /* ignore */
   }
 }
+
+// ---------------------------------------------------------------------------
+// Profile scoping
+// ---------------------------------------------------------------------------
+// Everything a player accumulates (progress, streaks, hand history) is stored
+// under the active profile so several people can share one browser without
+// stepping on each other. Profile-independent settings (theme, the profile
+// list itself) keep using the bare keys.
+
+let activeProfile: string | null = null;
+
+export function setActiveProfileKey(id: string | null): void {
+  activeProfile = id;
+}
+
+export function scopedKey(key: string): string {
+  return activeProfile ? `p/${activeProfile}/${key}` : key;
+}
+
+/** Delete every stored value belonging to one profile. */
+export function purgeProfile(id: string): void {
+  const s = backend();
+  if (!s) return;
+  const prefix = `${PREFIX}p/${id}/`;
+  const doomed: string[] = [];
+  try {
+    for (let i = 0; i < s.length; i++) {
+      const k = s.key(i);
+      if (k && k.startsWith(prefix)) doomed.push(k);
+    }
+    for (const k of doomed) s.removeItem(k);
+  } catch {
+    /* best effort */
+  }
+}
