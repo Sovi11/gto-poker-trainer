@@ -8,14 +8,16 @@ import { DailyView } from './components/DailyView';
 import { useTheme } from './lib/useTheme';
 import { InstallButton } from './components/InstallButton';
 import { StatsView } from './components/StatsView';
+import { StudyView } from './components/StudyView';
 import { ProfileGate } from './components/ProfileGate';
 import { activateProfile, getActiveProfileId, initProfileScope, listProfiles } from './lib/profiles';
 
-type Tab = 'daily' | 'learn' | 'drills' | 'solver' | 'bots' | 'play' | 'stats';
+type Tab = 'daily' | 'learn' | 'study' | 'drills' | 'solver' | 'bots' | 'play' | 'stats';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'daily', label: 'Daily' },
   { id: 'learn', label: 'Learn' },
+  { id: 'study', label: 'Study' },
   { id: 'drills', label: 'Drills' },
   { id: 'solver', label: 'Solver' },
   { id: 'bots', label: 'Bots' },
@@ -97,6 +99,7 @@ function Trainer({ onSwitch }: { onSwitch: () => void }) {
       <main>
         {tab === 'daily' && <DailyView onGoDrills={() => setTab('drills')} />}
         {tab === 'learn' && <LearnView />}
+        {tab === 'study' && <StudyView />}
         {tab === 'drills' && <DrillsView />}
         {tab === 'solver' && <SolverView />}
         {tab === 'bots' && <BotsView onPlay={goPlay} />}
