@@ -6,3 +6,5 @@ dist-ssr
 .vite
 *.log
 *.tsbuildinfo
+.hand-src
+.hand-cache
