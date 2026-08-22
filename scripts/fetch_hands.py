@@ -42,8 +42,8 @@ CACHE = ROOT / ".hand-src" / "repo.tar.gz"
 
 # How many hands to ship. The whole Pluribus set is 10k; the app only needs a
 # strong, varied selection, and every hand is precached for offline use.
-MAX_HANDS = 240
-MAX_PLURIBUS = 200
+MAX_HANDS = 900
+MAX_PLURIBUS = 880
 
 CARD_RE = re.compile(r"[2-9TJQKA][cdhs]")
 STREETS = {3: "flop", 4: "turn", 5: "river"}
@@ -165,7 +165,10 @@ def convert(raw: str, path: str) -> dict | None:
         return None
     if not saw_flop and aggressive < 2 and not all_in:
         return None
-    if pot_bb < 12:
+    if pot_bb < 15:
+        return None
+    # Somebody has to have had a real decision, not just a min-raise walk.
+    if saw_flop and postflop_actions < 2:
         return None
 
     # Rank by how much there is to think about.

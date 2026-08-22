@@ -16,6 +16,14 @@ async function loadLibrary(): Promise<Hand[]> {
   return cached;
 }
 
+type Sort = 'pot' | 'action' | 'unplayed' | 'random';
+const SORTS: { id: Sort; label: string }[] = [
+  { id: 'pot', label: 'Biggest pots' },
+  { id: 'action', label: 'Most action' },
+  { id: 'unplayed', label: 'Not played yet' },
+  { id: 'random', label: 'Shuffle' },
+];
+
 type Group = 'all' | 'famous' | 'wsop' | 'pluribus';
 const GROUPS: { id: Group; label: string }[] = [
   { id: 'all', label: 'All hands' },
@@ -27,6 +35,9 @@ const GROUPS: { id: Group; label: string }[] = [
 export function StudyView() {
   const [HANDS, setHands] = useState<Hand[] | null>(cached);
   const [group, setGroup] = useState<Group>('all');
+  const [sort, setSort] = useState<Sort>('pot');
+  const [shown, setShown] = useState(48);
+  const [seed, setSeed] = useState(1);
   const [handId, setHandId] = useState<string | null>(null);
   const [seat, setSeat] = useState<number | null>(null);
   const [played, setPlayed] = useProfileState<string[]>('study.played', []);
@@ -39,10 +50,25 @@ export function StudyView() {
     };
   }, []);
 
-  const hands = useMemo(
-    () => (!HANDS ? [] : group === 'all' ? HANDS : HANDS.filter((h) => h.group === group)),
-    [HANDS, group],
-  );
+  const hands = useMemo(() => {
+    if (!HANDS) return [];
+    const pool = group === 'all' ? HANDS : HANDS.filter((h) => h.group === group);
+    const list = [...pool];
+    if (sort === 'action') {
+      list.sort((a, b) => b.steps.length - a.steps.length);
+    } else if (sort === 'unplayed') {
+      list.sort((a, b) => Number(played.includes(a.id)) - Number(played.includes(b.id)) || b.potBB - a.potBB);
+    } else if (sort === 'random') {
+      // Deterministic shuffle so the order is stable until you reshuffle.
+      const key = (h: Hand) => {
+        let x = seed;
+        for (let i = 0; i < h.id.length; i++) x = (x * 31 + h.id.charCodeAt(i)) >>> 0;
+        return x;
+      };
+      list.sort((a, b) => key(a) - key(b));
+    }
+    return list; // 'pot' is the order the library ships in
+  }, [HANDS, group, sort, played, seed]);
   const hand = handId && HANDS ? HANDS.find((h) => h.id === handId) ?? null : null;
 
   const exit = () => {
@@ -95,8 +121,28 @@ export function StudyView() {
         </div>
       </div>
 
+      <div className="study-sort">
+        <span className="muted small">Sort</span>
+        {SORTS.map((o) => (
+          <button
+            key={o.id}
+            className={`sort-chip ${sort === o.id ? 'on' : ''}`}
+            onClick={() => {
+              setSort(o.id);
+              setShown(48);
+              if (o.id === 'random') setSeed((v) => v + 1);
+            }}
+          >
+            {o.label}
+          </button>
+        ))}
+        <span className="muted small study-count">
+          {hands.length} hands · {played.length} played
+        </span>
+      </div>
+
       <div className="hand-cards">
-        {hands.map((h) => (
+        {hands.slice(0, shown).map((h) => (
           <button key={h.id} className="hand-tile" onClick={() => setHandId(h.id)}>
             <span className={`tile-group ${h.group}`}>{h.group === 'pluribus' ? 'Pluribus' : h.group === 'wsop' ? 'WSOP' : 'High stakes'}</span>
             <span className="tile-pot">{h.potBB} bb</span>
@@ -107,6 +153,12 @@ export function StudyView() {
           </button>
         ))}
       </div>
+
+      {shown < hands.length && (
+        <button className="load-more" onClick={() => setShown((v) => v + 48)}>
+          Show more ({hands.length - shown} left)
+        </button>
+      )}
     </div>
   );
 }
