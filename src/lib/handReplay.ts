@@ -1,3 +1,6 @@
+import { parseCard } from '../engine/cards';
+import { evaluateBest } from '../engine/evaluator';
+
 // Replay engine for recorded hands.
 //
 // Pure state derivation: given a hand and how many steps have been played,
@@ -45,7 +48,15 @@ export interface Hand {
   pot: number;
   potBB: number;
   source: string;
-  group: 'famous' | 'wsop' | 'pluribus';
+  /** Currency symbol from the source, when it recorded one. */
+  symbol?: string;
+  group: 'famous' | 'wsop' | 'pluribus' | 'online';
+  /** Online archives record the site; names are hashed out of the data. */
+  venue?: string;
+  /** True when the source has no real player names to show. */
+  anon?: boolean;
+  /** Winners as recorded in the source, where it recorded them. */
+  winners?: number[];
 }
 
 export interface TableState {
@@ -67,6 +78,11 @@ export interface TableState {
   lastAction: (string | null)[];
   /** Whose cards are face up (they showed at showdown). */
   shown: boolean[];
+}
+
+/** Money is only ever accurate to cents; keep every total on that grid. */
+function cents(x: number): number {
+  return Math.round(x * 100) / 100;
 }
 
 function label(step: ActStep, currency: string): string {
@@ -117,9 +133,11 @@ export function replayState(hand: Hand, count: number): TableState {
         // You can only put in what you have: calling a shove that covers you
         // puts you all-in for less, it does not lend you the difference.
         const added = Math.min(target - bets[i], stacks[i]);
-        bets[i] += added;
-        contributed[i] += added;
-        stacks[i] -= added;
+        // Online games use decimal money, so round to cents at every step to
+        // keep the running totals exact.
+        bets[i] = cents(bets[i] + added);
+        contributed[i] = cents(contributed[i] + added);
+        stacks[i] = cents(stacks[i] - added);
       }
       lastAction[i] = label(step, hand.currency);
     } else if (step.t === 'show') {
@@ -127,7 +145,7 @@ export function replayState(hand: Hand, count: number): TableState {
     }
   }
 
-  const committedTotal = contributed.reduce((a, b) => a + b, 0);
+  const committedTotal = cents(contributed.reduce((a, b) => a + b, 0));
 
   return {
     board,
@@ -136,7 +154,7 @@ export function replayState(hand: Hand, count: number): TableState {
     stacks,
     folded,
     pot: committedTotal,
-    effectivePot: committedTotal - uncalledExcess(contributed),
+    effectivePot: cents(committedTotal - uncalledExcess(contributed)),
     street,
     lastAction,
     shown,
@@ -208,11 +226,35 @@ export function candidateSeats(hand: Hand): number[] {
     const known = hand.hole[i] ? 25 : -1000; // you must be able to see your own cards
     return { i, score: final.contributed[i] / hand.bb + acts * 5 + survived + known };
   });
-  involvement.sort((a, b) => b.score - a.score);
   return involvement
+    .filter((x) => hand.hole[x.i]) // you must be able to see your own cards
+    .sort((a, b) => b.score - a.score)
     .slice(0, 2)
     .map((x) => x.i)
     .sort((a, b) => a - b);
+}
+
+/**
+ * Who actually won, worked out from the cards. Preferred over the source's
+ * `winnings` field only when that field is missing — this evaluates the real
+ * hole cards against the real board, so it derives nothing that was not dealt.
+ */
+export function showdownWinners(hand: Hand): number[] {
+  if (hand.winners && hand.winners.length) return hand.winners;
+  const final = replayState(hand, hand.steps.length);
+  const live = hand.players
+    .map((_, i) => i)
+    .filter((i) => !final.folded[i] && hand.hole[i]);
+  if (live.length === 0) return [];
+  if (live.length === 1) return live;
+  if (hand.board.length < 5) return []; // cannot rank an unfinished board
+  const board = hand.board.map(parseCard);
+  const scored = live.map((i) => ({
+    i,
+    score: evaluateBest([...hand.hole[i]!.map(parseCard), ...board]),
+  }));
+  const best = Math.max(...scored.map((x) => x.score));
+  return scored.filter((x) => x.score === best).map((x) => x.i);
 }
 
 /** Chips won or lost by a seat over the hand. */

@@ -8,6 +8,7 @@ import {
   decisionPoints,
   matches,
   replayState,
+  showdownWinners,
 } from '../lib/handReplay';
 import { CardRow } from './Card';
 
@@ -74,7 +75,8 @@ export function HandTheater({
   // While the hand is live the pot shows everything wagered; once it is over,
   // any uncalled bet has gone back, so show what was really contested.
   const potNow = done ? state.effectivePot : state.pot;
-  const money = (x: number) => (hand.currency === 'USD' ? `$${x.toLocaleString()}` : x.toLocaleString());
+  const sym = hand.symbol ?? (hand.currency === 'USD' ? '$' : '');
+  const money = (x: number) => `${sym}${x.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   const right = guesses.filter((g) => g.right).length;
 
   // Seat geometry: you sit at the bottom, everyone else fans around the oval.
@@ -89,6 +91,7 @@ export function HandTheater({
   };
 
   const showCards = (i: number) => i === seat || reveal || state.shown[i];
+  const winners = reveal ? showdownWinners(hand) : [];
 
   return (
     <div className="theater">
@@ -184,7 +187,7 @@ export function HandTheater({
               {hand.players.map((name, i) => (
                 <tr key={i} className={i === seat ? 'you' : ''}>
                   <td>{i === seat ? 'You' : `Seat ${SEAT_LETTERS[i] ?? i + 1}`}</td>
-                  <td>{name}</td>
+                  <td>{hand.anon ? <span className="muted small">name not in the data</span> : name}</td>
                   <td>
                     {hand.hole[i] ? (
                       <CardRow cards={hand.hole[i]!.map(parseCard)} small />
@@ -192,7 +195,9 @@ export function HandTheater({
                       <span className="muted small">never shown</span>
                     )}
                   </td>
-                  <td className="muted small">{state.folded[i] ? 'folded' : 'to showdown'}</td>
+                  <td className={winners.includes(i) ? 'won' : 'muted small'}>
+                    {state.folded[i] ? 'folded' : winners.includes(i) ? 'won the pot' : 'to showdown'}
+                  </td>
                 </tr>
               ))}
             </tbody>

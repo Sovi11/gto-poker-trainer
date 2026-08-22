@@ -24,12 +24,13 @@ const SORTS: { id: Sort; label: string }[] = [
   { id: 'random', label: 'Shuffle' },
 ];
 
-type Group = 'all' | 'famous' | 'wsop' | 'pluribus';
+type Group = 'all' | 'online' | 'famous' | 'wsop' | 'pluribus';
 const GROUPS: { id: Group; label: string }[] = [
   { id: 'all', label: 'All hands' },
-  { id: 'famous', label: 'High stakes' },
+  { id: 'online', label: 'Real games' },
+  { id: 'famous', label: 'Televised' },
   { id: 'wsop', label: 'WSOP' },
-  { id: 'pluribus', label: 'Pluribus' },
+  { id: 'pluribus', label: 'Pluribus (AI)' },
 ];
 
 export function StudyView() {
@@ -144,7 +145,15 @@ export function StudyView() {
       <div className="hand-cards">
         {hands.slice(0, shown).map((h) => (
           <button key={h.id} className="hand-tile" onClick={() => setHandId(h.id)}>
-            <span className={`tile-group ${h.group}`}>{h.group === 'pluribus' ? 'Pluribus' : h.group === 'wsop' ? 'WSOP' : 'High stakes'}</span>
+            <span className={`tile-group ${h.group}`}>
+              {h.group === 'online'
+                ? h.venue ?? 'Real game'
+                : h.group === 'pluribus'
+                  ? 'Pluribus'
+                  : h.group === 'wsop'
+                    ? 'WSOP'
+                    : 'Televised'}
+            </span>
             <span className="tile-pot">{h.potBB} bb</span>
             <span className="tile-meta muted small">
               {h.players.length}-handed · {h.board.length ? `${h.board.length} card board` : 'preflop'}
@@ -166,7 +175,8 @@ export function StudyView() {
 function SeatPicker({ hand, onPick, onCancel }: { hand: Hand; onPick: (s: number) => void; onCancel: () => void }) {
   const seats = candidateSeats(hand);
   const start = replayState(hand, 0);
-  const money = (x: number) => (hand.currency === 'USD' ? `$${x.toLocaleString()}` : x.toLocaleString());
+  const sym = hand.symbol ?? (hand.currency === 'USD' ? '$' : '');
+  const money = (x: number) => `${sym}${x.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
   return (
     <div className="panel seat-pick">

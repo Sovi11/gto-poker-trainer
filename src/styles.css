@@ -2867,3 +2867,5 @@ h3,
   font-size: 14px;
 }
 .load-more:hover { border-color: var(--accent); }
+.tile-group.online { color: var(--teal); border-color: color-mix(in srgb, var(--teal) 45%, transparent); }
+.reveal-table .won { color: var(--green-bright); font-weight: 700; font-size: 13px; }

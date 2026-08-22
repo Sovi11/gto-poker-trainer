@@ -25,6 +25,8 @@ The PHH action grammar we use:
 
 from __future__ import annotations
 
+import math
+
 import io
 import json
 import re
@@ -43,7 +45,16 @@ CACHE = ROOT / ".hand-src" / "repo.tar.gz"
 # How many hands to ship. The whole Pluribus set is 10k; the app only needs a
 # strong, varied selection, and every hand is precached for offline use.
 MAX_HANDS = 900
-MAX_PLURIBUS = 880
+MAX_PLURIBUS = 120
+MAX_ONLINE = 760
+# How many .phhs archives to sample per site/stake folder. Each holds ~1000
+# hands, and there are 21,782 of them — sampling keeps the build tractable.
+FILES_PER_FOLDER = 8
+
+def money(x: float) -> float:
+    """Money is rounded once, to cents, everywhere it is written out."""
+    return round(x + 0.0, 2)
+
 
 CARD_RE = re.compile(r"[2-9TJQKA][cdhs]")
 STREETS = {3: "flop", 4: "turn", 5: "river"}
@@ -61,12 +72,20 @@ def download() -> bytes:
 
 
 def convert(raw: str, path: str) -> dict | None:
-    """PHH text -> a replay-ready hand, or None if unusable."""
-    data = tomllib.loads(raw)
+    """A single-hand .phh file -> a replay-ready hand."""
+    return convert_table(tomllib.loads(raw), path)
+
+
+def convert_table(data: dict, path: str) -> dict | None:
+    """One parsed PHH table -> a replay-ready hand, or None if unusable."""
     if data.get("variant") != "NT":  # no-limit hold'em only
         return None
 
     stacks = [float(s) for s in (data.get("starting_stacks") or [])]
+    # Some archived hands record an unknown stack as infinity. Without a real
+    # stack there is no all-in to cap against, so the hand is not replayable.
+    if not all(math.isfinite(x) and x > 0 for x in stacks):
+        return None
     n = len(stacks)
     players = data.get("players") or []
     if n < 2 or len(players) != n:
@@ -131,7 +150,7 @@ def convert(raw: str, path: str) -> dict | None:
                 committed[i] += owed
                 contributed[i] += owed
                 steps.append({"t": "act", "p": i, "a": "call",
-                              "amount": round(owed), "to": round(committed[i]), "street": street})
+                              "amount": money(owed), "to": money(committed[i]), "street": street})
         elif verb == "cbr":
             target = float(parts[2])
             # Nobody can wager more than they brought to the table.
@@ -144,25 +163,39 @@ def convert(raw: str, path: str) -> dict | None:
             if contributed[i] >= stacks[i] - 1e-9:
                 all_in = True
             steps.append({"t": "act", "p": i, "a": kind,
-                          "amount": round(added), "to": round(committed[i]), "street": street})
+                          "amount": money(added), "to": money(committed[i]), "street": street})
         elif verb == "sm":
             cards = CARD_RE.findall(parts[2]) if len(parts) > 2 else []
             if len(cards) == 2:
                 hole[i] = cards
             steps.append({"t": "show", "p": i, "cards": cards})
 
-    # An uncalled bet goes back to whoever made it, so it was never really in.
+    # Recompute from the emitted steps so the stored pot matches what the app
+    # will derive when it replays them. Rounding must not drift between the two.
+    sim_bets = [money(b) for b in blinds[:n]]
+    sim_contrib = [money(sim_bets[i] + antes[i]) for i in range(n)]
+    sim_stacks = [money(stacks[i] - sim_contrib[i]) for i in range(n)]
+    for st in steps:
+        if st["t"] == "board":
+            sim_bets = [0.0] * n
+        elif st["t"] == "act" and st["a"] in ("call", "bet", "raise"):
+            i = st["p"]
+            added = min(st["to"] - sim_bets[i], sim_stacks[i])
+            sim_bets[i] = money(sim_bets[i] + added)
+            sim_contrib[i] = money(sim_contrib[i] + added)
+            sim_stacks[i] = money(sim_stacks[i] - added)
+    contributed = sim_contrib
     ranked = sorted(contributed, reverse=True)
     uncalled = max(0.0, ranked[0] - ranked[1]) if len(ranked) > 1 else 0.0
-    pot = sum(contributed) - uncalled
+    pot = money(sum(contributed) - uncalled)
     pot_bb = pot / big_blind
     saw_flop = len(board) >= 3
     known = [i for i in range(n) if hole[i]]
 
     # A hand is worth studying if there was a real decision in it: either it
     # went postflop, or somebody three-bet / shipped it preflop.
-    if not known:
-        return None
+    if len(known) < 2:
+        return None  # you need your own cards and someone to reveal against
     if not saw_flop and aggressive < 2 and not all_in:
         return None
     if pot_bb < 15:
@@ -179,68 +212,144 @@ def convert(raw: str, path: str) -> dict | None:
         "event": data.get("event") or "",
         "year": data.get("year"),
         "currency": data.get("currency") or "",
+        "symbol": data.get("currency_symbol") or ("$" if data.get("currency") == "USD" else ""),
         "players": players,
-        "stacks": [round(s) for s in stacks],
-        "blinds": [round(b) for b in blinds[:n]],
-        "antes": [round(a) for a in antes[:n]],
-        "bb": round(big_blind),
+        "stacks": [money(s) for s in stacks],
+        "blinds": [money(b) for b in blinds[:n]],
+        "antes": [money(a) for a in antes[:n]],
+        "bb": money(big_blind),
         "hole": hole,
         "board": board,
         "steps": steps,
-        "pot": round(pot),
+        "pot": money(pot),
         "potBB": round(pot_bb, 1),
         "score": round(score, 1),
         "source": f"https://github.com/{REPO}/blob/main/{path}",
     }
 
 
+VENUES = {
+    "ABS": "Absolute Poker",
+    "FTP": "Full Tilt Poker",
+    "IPN": "iPoker Network",
+    "ONG": "Ongame Network",
+    "PS": "PokerStars",
+    "PTY": "PartyPoker",
+}
+
+
+def describe_folder(folder: str) -> tuple[str, str]:
+    """'PS-2009-07-01_2009-07-23_1000NLH_OBFU' -> ('PokerStars', '$1000 NL')."""
+    site = VENUES.get(folder.split("-")[0], folder.split("-")[0])
+    stake = ""
+    for part in folder.split("_"):
+        if part.endswith("NLH"):
+            stake = f"${part[:-3]} NL"
+    return site, stake
+
+
+def convert_online(raw: str, path: str) -> list[dict]:
+    """A .phhs archive holds ~1000 hands as TOML tables. Convert them all."""
+    folder = path.split("/")[2] if path.count("/") > 2 else ""
+    site, stake = describe_folder(folder)
+    out: list[dict] = []
+    for key, body in tomllib.loads(raw).items():
+        if not isinstance(body, dict):
+            continue
+        hand = convert_table(body, f"{path}#{key}")
+        if not hand:
+            continue
+        # Player names in this archive are irreversible hashes, so there is no
+        # identity to show. Say so rather than printing a meaningless string.
+        hand["players"] = [f"Seat {chr(65 + i)}" for i in range(len(hand["players"]))]
+        hand["anon"] = True
+        hand["event"] = f"{site} · {stake}".strip(" ·")
+        hand["venue"] = site
+        winnings = body.get("winnings") or []
+        hand["winners"] = [i for i, w in enumerate(winnings) if isinstance(w, (int, float)) and w > 0]
+        out.append(hand)
+    return out
+
+
+def extracted_root() -> Path:
+    """Unpack the dataset once; every later run reads from disk."""
+    root = CACHE.parent / "phh-dataset-main"
+    if not root.exists():
+        with tarfile.open(fileobj=io.BytesIO(download()), mode="r:gz") as tar:
+            tar.extractall(CACHE.parent)
+    return root
+
+
 def main() -> None:
-    blob = download()
+    root = extracted_root()
+    data = root / "data"
     famous: list[dict] = []
     wsop: list[dict] = []
     pluribus: list[dict] = []
+    online: list[dict] = []
 
-    with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tar:
-        for member in tar:
-            if not member.name.endswith(".phh"):
-                continue
-            rel = member.name.split("/", 1)[1] if "/" in member.name else member.name
-            if "alice-carol" in rel:  # a format example, not a real hand
-                continue
-            f = tar.extractfile(member)
-            if f is None:
-                continue
+    def read(path: Path) -> str:
+        return path.read_text(encoding="utf-8", errors="replace")
+
+    def rel(path: Path) -> str:
+        return path.relative_to(root).as_posix()
+
+    # Single-hand files: the famous televised pots, the WSOP event, Pluribus.
+    for f in sorted(data.rglob("*.phh")):
+        if "alice-carol" in f.name:
+            continue
+        try:
+            hand = convert(read(f), rel(f))
+        except Exception as exc:
+            print(f"  skip {f.name}: {exc}", file=sys.stderr)
+            continue
+        if not hand:
+            continue
+        path = rel(f)
+        if "pluribus" in path:
+            hand["group"] = "pluribus"
+            pluribus.append(hand)
+        elif "wsop" in path:
+            hand["group"] = "wsop"
+            wsop.append(hand)
+        else:
+            hand["group"] = "famous"
+            famous.append(hand)
+
+    # Multi-hand archives: real money games played by real people. Sample a few
+    # files from every site/stake folder so the mix stays varied.
+    handhq = data / "handhq"
+    folders = sorted([d for d in handhq.iterdir() if d.is_dir()]) if handhq.exists() else []
+    for folder in folders:
+        files = sorted(folder.rglob("*.phhs"))[:FILES_PER_FOLDER]
+        for f in files:
             try:
-                hand = convert(f.read().decode("utf-8"), rel)
+                hands = convert_online(read(f), rel(f))
             except Exception as exc:
-                print(f"  skip {rel}: {exc}", file=sys.stderr)
+                print(f"  skip {f.name}: {exc}", file=sys.stderr)
                 continue
-            if not hand:
-                continue
-            if "pluribus" in rel:
-                hand["group"] = "pluribus"
-                pluribus.append(hand)
-            elif "wsop" in rel:
-                hand["group"] = "wsop"
-                wsop.append(hand)
-            else:
-                hand["group"] = "famous"
-                famous.append(hand)
+            for hand in hands:
+                # Only keep hands where enough cards came face up to make a
+                # reveal worth watching.
+                if sum(1 for h in hand["hole"] if h) < 2:
+                    continue
+                hand["group"] = "online"
+                online.append(hand)
+        print(f"  {folder.name}: {len(online)} kept so far", file=sys.stderr)
 
-    pluribus.sort(key=lambda h: -h["score"])
-    wsop.sort(key=lambda h: -h["score"])
-    famous.sort(key=lambda h: -h["score"])
+    for bucket in (famous, wsop, pluribus, online):
+        bucket.sort(key=lambda h: -h["score"])
 
-    hands = famous + wsop + pluribus[:MAX_PLURIBUS]
+    hands = famous + wsop + online[:MAX_ONLINE] + pluribus[:MAX_PLURIBUS]
     hands = hands[:MAX_HANDS]
     for h in hands:
         h.pop("score", None)
 
     OUT.write_text(json.dumps(hands, separators=(",", ":")), encoding="utf-8")
-    size_kb = OUT.stat().st_size / 1024
     print(
-        f"famous={len(famous)} wsop={len(wsop)} pluribus={len(pluribus)} "
-        f"-> shipped {len(hands)} hands, {size_kb:.0f}KB",
+        f"famous={len(famous)} wsop={len(wsop)} online={len(online)} "
+        f"pluribus={len(pluribus)} -> shipped {len(hands)} hands, "
+        f"{OUT.stat().st_size / 1024:.0f}KB",
         file=sys.stderr,
     )
 
