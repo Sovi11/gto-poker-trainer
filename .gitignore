@@ -8,3 +8,7 @@ dist-ssr
 *.tsbuildinfo
 .hand-src
 .hand-cache
+
+# local secrets
+.env
+.env.local

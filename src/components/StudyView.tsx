@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Hand, candidateSeats, replayState } from '../lib/handReplay';
+import { HandPlayStats, fetchHandPlays } from '../lib/handPlays';
 import { useProfileState } from '../lib/profiles';
+import { supabaseEnabled } from '../lib/supabase';
 import { HandTheater } from './HandTheater';
 
 const SEAT_LETTERS = 'ABCDEF';
@@ -16,10 +18,12 @@ async function loadLibrary(): Promise<Hand[]> {
   return cached;
 }
 
-type Sort = 'pot' | 'action' | 'unplayed' | 'random';
+type Sort = 'pot' | 'action' | 'popular' | 'unplayed' | 'random';
 const SORTS: { id: Sort; label: string }[] = [
   { id: 'pot', label: 'Biggest pots' },
   { id: 'action', label: 'Most action' },
+  // Real cross-user counts from Supabase; hidden when no backend is configured.
+  ...(supabaseEnabled() ? [{ id: 'popular', label: 'Most played' } as const] : []),
   { id: 'unplayed', label: 'Not played yet' },
   { id: 'random', label: 'Shuffle' },
 ];
@@ -42,10 +46,12 @@ export function StudyView() {
   const [handId, setHandId] = useState<string | null>(null);
   const [seat, setSeat] = useState<number | null>(null);
   const [played, setPlayed] = useProfileState<string[]>('study.played', []);
+  const [plays, setPlays] = useState<Record<string, HandPlayStats>>({});
 
   useEffect(() => {
     let live = true;
     loadLibrary().then((h) => live && setHands(h));
+    fetchHandPlays().then((p) => live && setPlays(p));
     return () => {
       live = false;
     };
@@ -57,6 +63,8 @@ export function StudyView() {
     const list = [...pool];
     if (sort === 'action') {
       list.sort((a, b) => b.steps.length - a.steps.length);
+    } else if (sort === 'popular') {
+      list.sort((a, b) => (plays[b.id]?.plays ?? 0) - (plays[a.id]?.plays ?? 0) || b.potBB - a.potBB);
     } else if (sort === 'unplayed') {
       list.sort((a, b) => Number(played.includes(a.id)) - Number(played.includes(b.id)) || b.potBB - a.potBB);
     } else if (sort === 'random') {
@@ -69,7 +77,7 @@ export function StudyView() {
       list.sort((a, b) => key(a) - key(b));
     }
     return list; // 'pot' is the order the library ships in
-  }, [HANDS, group, sort, played, seed]);
+  }, [HANDS, group, sort, played, seed, plays]);
   const hand = handId && HANDS ? HANDS.find((h) => h.id === handId) ?? null : null;
 
   const exit = () => {
@@ -81,7 +89,7 @@ export function StudyView() {
   if (hand && seat !== null) {
     return (
       <div className="view">
-        <HandTheater hand={hand} seat={seat} onExit={exit} />
+        <HandTheater hand={hand} seat={seat} global={plays[hand.id]} onExit={exit} />
       </div>
     );
   }
@@ -157,6 +165,7 @@ export function StudyView() {
             <span className="tile-pot">{h.potBB} bb</span>
             <span className="tile-meta muted small">
               {h.players.length}-handed · {h.board.length ? `${h.board.length} card board` : 'preflop'}
+              {(plays[h.id]?.plays ?? 0) > 0 ? ` · ${plays[h.id].plays} plays` : ''}
               {played.includes(h.id) ? ' · played' : ''}
             </span>
           </button>

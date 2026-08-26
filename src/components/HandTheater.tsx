@@ -10,6 +10,7 @@ import {
   replayState,
   showdownWinners,
 } from '../lib/handReplay';
+import { HandPlayStats, recordHandPlay } from '../lib/handPlays';
 import { CardRow } from './Card';
 
 const SEAT_LETTERS = 'ABCDEF';
@@ -25,10 +26,13 @@ interface Guess {
 export function HandTheater({
   hand,
   seat,
+  global,
   onExit,
 }: {
   hand: Hand;
   seat: number;
+  /** Cross-user play counts for this hand, when a backend is configured. */
+  global?: HandPlayStats;
   onExit: () => void;
 }) {
   const n = hand.players.length;
@@ -38,6 +42,7 @@ export function HandTheater({
   const [reveal, setReveal] = useState(false);
   const [lastVerdict, setLastVerdict] = useState<Guess | null>(null);
   const timer = useRef<number | null>(null);
+  const counted = useRef(false);
 
   const done = step >= hand.steps.length;
   // Pause when the next step is one of our decisions and we have not answered it.
@@ -57,6 +62,13 @@ export function HandTheater({
       if (timer.current) window.clearTimeout(timer.current);
     };
   }, [step, done, pendingDecision, hand.steps]);
+
+  // One global counter bump per completed run-through, guests included.
+  useEffect(() => {
+    if (!done || counted.current) return;
+    counted.current = true;
+    recordHandPlay(hand.id, guesses.length, guesses.filter((g) => g.right).length);
+  }, [done, hand.id, guesses]);
 
   const answer = (choice: Choice) => {
     if (pendingDecision === null) return;
@@ -205,6 +217,14 @@ export function HandTheater({
           {guesses.length > 0 && (
             <p className="reveal-score">
               You matched <strong>{right}</strong> of {guesses.length} decisions.
+            </p>
+          )}
+          {global && global.plays > 0 && (
+            <p className="muted small">
+              {global.plays.toLocaleString()} {global.plays === 1 ? 'player has' : 'players have'} run this hand
+              {global.guesses > 0 &&
+                ` · together they matched ${Math.round((100 * global.matched) / global.guesses)}% of decisions`}
+              .
             </p>
           )}
           <p className="muted small">

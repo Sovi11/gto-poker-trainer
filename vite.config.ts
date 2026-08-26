@@ -2,12 +2,14 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// Production builds are served from GitHub Pages under /gto-poker-trainer/;
-// dev stays at the root. `vite preview` runs in serve mode, so it needs the
-// production base too — otherwise it serves at / while the built HTML points
-// at the subpath, and every asset 404s into the SPA fallback.
+// GitHub Pages serves from /gto-poker-trainer/, Cloudflare Pages (the primary
+// deploy, which sets CF_PAGES) serves from the root, and dev stays at the
+// root. `vite preview` runs in serve mode, so it needs the production base
+// too — otherwise it serves at / while the built HTML points at the subpath,
+// and every asset 404s into the SPA fallback.
+const onCloudflare = Boolean(process.env.CF_PAGES);
 export default defineConfig(({ command, isPreview }) => ({
-  base: command === 'build' || isPreview ? '/gto-poker-trainer/' : '/',
+  base: !onCloudflare && (command === 'build' || isPreview) ? '/gto-poker-trainer/' : '/',
   plugins: [
     react(),
     VitePWA({

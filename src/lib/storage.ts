@@ -34,6 +34,32 @@ export function saveJSON(key: string, value: unknown): void {
   } catch {
     /* quota exceeded / private mode — persistence is best-effort */
   }
+  writeListener?.(key, value);
+}
+
+// The cloud sync engine registers here to hear about every write. Kept as a
+// single listener on purpose: storage stays dumb, sync owns the policy.
+type WriteListener = (key: string, value: unknown) => void;
+let writeListener: WriteListener | null = null;
+
+export function setWriteListener(fn: WriteListener | null): void {
+  writeListener = fn;
+}
+
+/** Every stored key (PREFIX stripped) that starts with `prefix`. */
+export function listKeys(prefix: string): string[] {
+  const s = backend();
+  if (!s) return [];
+  const out: string[] = [];
+  try {
+    for (let i = 0; i < s.length; i++) {
+      const k = s.key(i);
+      if (k && k.startsWith(PREFIX + prefix)) out.push(k.slice(PREFIX.length));
+    }
+  } catch {
+    /* best effort */
+  }
+  return out;
 }
 
 export function removeKey(key: string): void {

@@ -4,11 +4,13 @@ Learn the math. Grind the bots. Print.
 
 A single-page web app for learning **Game-Theory-Optimal (GTO) poker** and putting it
 into practice against AI opponents — each with a distinct, exploitable personality.
-Everything runs in the browser; no backend, no sign-up, no network calls.
+Everything runs in the browser. Accounts are optional: add a Supabase project and
+players can sign in with a magic link to sync progress across devices — without one,
+the app is fully local and makes no network calls.
 
 **▶ Play it live: https://sovi11.github.io/gto-poker-trainer/**
 
-Free and open-source (MIT). Everything runs in your browser — no backend, no sign-up, no tracking.
+Free and open-source (MIT). Runs in your browser; signing in is optional and only exists to sync your own progress.
 
 **Installable.** On phone or desktop, hit **Install** in the top bar (or Share → Add to Home Screen
 on iOS) and it runs as a standalone app — offline included.
@@ -89,3 +91,35 @@ See [CLAUDE.md](CLAUDE.md) for architecture details and contribution conventions
 This is a **study tool**. The GTO ranges are solver-derived reference charts, not the output
 of a live solver, and the bots approximate archetypes rather than true equilibrium play. Use it
 to build intuition, then verify against a dedicated solver for serious work. Play responsibly.
+
+## Backend setup (optional)
+
+The app works with zero configuration — profiles and progress live in
+localStorage. To enable **cross-device sync** (email magic-link login) and the
+**global "Most played" counters** in Study:
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In the SQL editor, paste and run [`supabase/schema.sql`](supabase/schema.sql)
+   (tables + row-level security + the counter RPC).
+3. In **Authentication → URL Configuration**, set the Site URL to where you
+   host the app and add `http://localhost:5173` to the redirect allowlist for
+   local dev.
+4. Copy `.env.example` to `.env.local` and fill in the project URL and anon
+   key from **Project Settings → Data API**.
+
+The anon key is safe to expose — every table is guarded by row-level security,
+and the play counters can only be bumped through a bounds-checked function.
+When the env vars are absent at build time the entire cloud path is compiled
+out: no supabase-js in the bundle, no chip in the UI.
+
+## Deploying
+
+**Cloudflare Pages (recommended):** connect the repo, framework preset *Vite*,
+build command `npm run build`, output `dist`, and add the two `VITE_SUPABASE_*`
+environment variables. Cloudflare sets `CF_PAGES`, which makes the build serve
+from `/` (GitHub Pages keeps its `/gto-poker-trainer/` base). `public/_redirects`
+already handles SPA routing.
+
+**GitHub Pages:** already wired via `.github/workflows/deploy.yml`; add
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as repo secrets to ship that
+build with sync enabled.

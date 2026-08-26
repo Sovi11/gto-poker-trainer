@@ -11,6 +11,7 @@ import { StatsView } from './components/StatsView';
 import { StudyView } from './components/StudyView';
 import { ProfileGate } from './components/ProfileGate';
 import { activateProfile, getActiveProfileId, initProfileScope, listProfiles } from './lib/profiles';
+import { Cloud, useCloud } from './lib/useCloud';
 
 type Tab = 'daily' | 'learn' | 'study' | 'drills' | 'solver' | 'bots' | 'play' | 'stats';
 
@@ -43,16 +44,60 @@ function ThemeIcon({ theme }: { theme: 'dark' | 'light' }) {
 export default function App() {
   // Resolve the stored profile before any child reads scoped storage.
   const [profileId, setProfileId] = useState<string | null>(() => initProfileScope());
+  // Bumped when a cloud pull changes local data, so everything re-reads it.
+  const [cloudEpoch, setCloudEpoch] = useState(0);
 
   if (!profileId) return <ProfileGate onPick={setProfileId} />;
   // Remount everything on profile switch so all persisted state re-reads.
-  return <Trainer key={profileId} onSwitch={() => { activateProfile(null); setProfileId(null); }} />;
+  return (
+    <Trainer
+      key={`${profileId}:${cloudEpoch}`}
+      profileId={profileId}
+      onRemoteApplied={() => setCloudEpoch((e) => e + 1)}
+      onSwitch={() => {
+        activateProfile(null);
+        setProfileId(null);
+      }}
+    />
+  );
 }
 
-function Trainer({ onSwitch }: { onSwitch: () => void }) {
+function CloudChip({ cloud, onSignIn }: { cloud: Cloud; onSignIn: () => void }) {
+  if (!cloud.enabled) return null;
+  if (cloud.status === 'signedOut' || cloud.status === 'disabled') {
+    return (
+      <button className="cloud-chip" onClick={onSignIn} title="Sign in to sync your progress across devices">
+        ☁ Sign in
+      </button>
+    );
+  }
+  const label = cloud.status === 'syncing' ? 'syncing…' : cloud.status === 'offline' ? 'offline' : 'synced';
+  return (
+    <button
+      className={`cloud-chip on ${cloud.status}`}
+      title={`${cloud.email ?? 'Signed in'} — click to sign out`}
+      onClick={() => {
+        if (confirm('Sign out? Your progress stays on this device and in the cloud.')) void cloud.signOut();
+      }}
+    >
+      ☁ {label}
+    </button>
+  );
+}
+
+function Trainer({
+  profileId,
+  onSwitch,
+  onRemoteApplied,
+}: {
+  profileId: string;
+  onSwitch: () => void;
+  onRemoteApplied: () => void;
+}) {
   const [tab, setTab] = useState<Tab>('daily');
   const me = useMemo(() => listProfiles().find((p) => p.id === getActiveProfileId()), []);
   const { theme, toggle } = useTheme();
+  const cloud = useCloud(profileId, onRemoteApplied);
   const [playBot, setPlayBot] = useState<string | null>(null);
 
   const goPlay = (botId: string) => {
@@ -78,6 +123,7 @@ function Trainer({ onSwitch }: { onSwitch: () => void }) {
               {t.label}
             </button>
           ))}
+          <CloudChip cloud={cloud} onSignIn={onSwitch} />
           {me && (
             <button className="who" onClick={onSwitch} title="Switch player">
               <span className="who-avatar">{me.avatar}</span>
