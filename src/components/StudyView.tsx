@@ -1,22 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Hand, candidateSeats, replayState } from '../lib/handReplay';
 import { HandPlayStats, fetchHandPlays } from '../lib/handPlays';
+import { cachedLibrary, loadLibrary } from '../lib/handLibrary';
 import { useProfileState } from '../lib/profiles';
 import { supabaseEnabled } from '../lib/supabase';
 import { HandTheater } from './HandTheater';
 
 const SEAT_LETTERS = 'ABCDEF';
-
-// The library is a few hundred KB of hand histories. Load it on demand so it
-// never slows the first paint for someone who came here to play or drill.
-let cached: Hand[] | null = null;
-async function loadLibrary(): Promise<Hand[]> {
-  if (!cached) {
-    const mod = await import('../data/handLibrary.json');
-    cached = (mod.default ?? mod) as unknown as Hand[];
-  }
-  return cached;
-}
 
 type Sort = 'pot' | 'action' | 'popular' | 'unplayed' | 'random';
 const SORTS: { id: Sort; label: string }[] = [
@@ -38,7 +28,7 @@ const GROUPS: { id: Group; label: string }[] = [
 ];
 
 export function StudyView() {
-  const [HANDS, setHands] = useState<Hand[] | null>(cached);
+  const [HANDS, setHands] = useState<Hand[] | null>(cachedLibrary());
   const [group, setGroup] = useState<Group>('all');
   const [sort, setSort] = useState<Sort>('pot');
   const [shown, setShown] = useState(48);

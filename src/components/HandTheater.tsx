@@ -12,6 +12,7 @@ import {
 } from '../lib/handReplay';
 import { HandPlayStats, recordHandPlay } from '../lib/handPlays';
 import { CardRow } from './Card';
+import { FeltTable } from './FeltTable';
 
 const SEAT_LETTERS = 'ABCDEF';
 
@@ -35,7 +36,6 @@ export function HandTheater({
   global?: HandPlayStats;
   onExit: () => void;
 }) {
-  const n = hand.players.length;
   const decisions = useMemo(() => decisionPoints(hand, seat), [hand, seat]);
   const [step, setStep] = useState(0);
   const [guesses, setGuesses] = useState<Guess[]>([]);
@@ -91,17 +91,6 @@ export function HandTheater({
   const money = (x: number) => `${sym}${x.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
   const right = guesses.filter((g) => g.right).length;
 
-  // Seat geometry: you sit at the bottom, everyone else fans around the oval.
-  const seatStyle = (i: number) => {
-    const rel = (i - seat + n) % n;
-    const deg = 90 + (rel * 360) / n;
-    const rad = (deg * Math.PI) / 180;
-    return {
-      left: `${50 + 40 * Math.cos(rad)}%`,
-      top: `${50 + 36 * Math.sin(rad)}%`,
-    };
-  };
-
   const showCards = (i: number) => i === seat || reveal || state.shown[i];
   const winners = reveal ? showdownWinners(hand) : [];
 
@@ -117,39 +106,14 @@ export function HandTheater({
         </span>
       </div>
 
-      <div className="felt">
-        <div className="felt-centre">
-          <CardRow cards={state.board.map(parseCard)} dealt />
-          <div className="felt-pot">{money(potNow)}</div>
-        </div>
-
-        {hand.players.map((_, i) => {
-          const isHero = i === seat;
-          const cards = hand.hole[i];
-          return (
-            <div
-              key={i}
-              className={`felt-seat ${state.folded[i] ? 'out' : ''} ${isHero ? 'hero' : ''}`}
-              style={seatStyle(i)}
-            >
-              <div className="felt-name">
-                {isHero ? 'You' : `Seat ${SEAT_LETTERS[i] ?? i + 1}`}
-                {reveal && <span className="felt-real"> · {hand.players[i]}</span>}
-              </div>
-              <div className="felt-cards">
-                {cards && showCards(i) ? (
-                  <CardRow cards={cards.map(parseCard)} small dealt />
-                ) : (
-                  <CardRow cards={[null, null]} small />
-                )}
-              </div>
-              <div className="felt-stack">{money(Math.max(0, state.stacks[i]))}</div>
-              {state.lastAction[i] && <div className="felt-badge">{state.lastAction[i]}</div>}
-              {state.bets[i] > 0 && <div className="felt-bet">{money(state.bets[i])}</div>}
-            </div>
-          );
-        })}
-      </div>
+      <FeltTable
+        hand={hand}
+        seat={seat}
+        state={state}
+        pot={potNow}
+        showCards={showCards}
+        showRealNames={reveal}
+      />
 
       {pendingDecision !== null && (
         <div className="theater-ask">

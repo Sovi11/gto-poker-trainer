@@ -85,8 +85,13 @@ function cents(x: number): number {
   return Math.round(x * 100) / 100;
 }
 
-function label(step: ActStep, currency: string): string {
-  const money = (n: number) => (currency === 'USD' ? `$${n.toLocaleString()}` : n.toLocaleString());
+/** The money prefix for a hand: its recorded symbol, else $ for USD games. */
+export function moneySymbol(hand: Pick<Hand, 'symbol' | 'currency'>): string {
+  return hand.symbol ?? (hand.currency === 'USD' ? '$' : '');
+}
+
+function label(step: ActStep, hand: Hand): string {
+  const money = (n: number) => `${moneySymbol(hand)}${n.toLocaleString()}`;
   switch (step.a) {
     case 'fold':
       return 'fold';
@@ -139,7 +144,7 @@ export function replayState(hand: Hand, count: number): TableState {
         contributed[i] = cents(contributed[i] + added);
         stacks[i] = cents(stacks[i] - added);
       }
-      lastAction[i] = label(step, hand.currency);
+      lastAction[i] = label(step, hand);
     } else if (step.t === 'show') {
       shown[step.p] = true;
     }
@@ -192,7 +197,7 @@ export function choicesAt(hand: Hand, stepIndex: number): Choice[] {
   if (!step || step.t !== 'act') return [];
   const before = replayState(hand, stepIndex);
   const owed = Math.max(0, Math.max(...before.bets) - before.bets[step.p]);
-  const money = (n: number) => (hand.currency === 'USD' ? `$${n.toLocaleString()}` : n.toLocaleString());
+  const money = (n: number) => `${moneySymbol(hand)}${n.toLocaleString()}`;
 
   if (owed > 0) {
     return [

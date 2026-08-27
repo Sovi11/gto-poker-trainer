@@ -80,3 +80,46 @@ $$;
 
 revoke all on function public.record_hand_play(text, int, int) from public;
 grant execute on function public.record_hand_play(text, int, int) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Daily-hand vote split: how the community answered each day's frozen
+-- decision. Public read; increment-only via the function below.
+-- ---------------------------------------------------------------------------
+create table if not exists public.daily_votes (
+  day integer not null,
+  choice text not null,
+  votes integer not null default 0,
+  updated_at timestamptz not null default now(),
+  primary key (day, choice)
+);
+
+alter table public.daily_votes enable row level security;
+
+drop policy if exists "daily votes: public read" on public.daily_votes;
+create policy "daily votes: public read" on public.daily_votes
+  for select using (true);
+
+create or replace function public.record_daily_vote(p_day int, p_choice text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_day is null or p_day < 1 or p_day > 20000 then
+    return;
+  end if;
+  if p_choice is null or p_choice not in ('fold', 'check', 'call', 'bet', 'raise') then
+    return;
+  end if;
+
+  insert into public.daily_votes as dv (day, choice, votes)
+  values (p_day, p_choice, 1)
+  on conflict (day, choice) do update
+    set votes = dv.votes + 1,
+        updated_at = now();
+end;
+$$;
+
+revoke all on function public.record_daily_vote(int, text) from public;
+grant execute on function public.record_daily_vote(int, text) to anon, authenticated;

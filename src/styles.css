@@ -2923,3 +2923,41 @@ h3,
   margin: 8px 0 0;
   color: var(--bad, #d0654f);
 }
+
+/* ---- Daily hand ---------------------------------------------------------- */
+
+.daily-brief h3 { margin-top: 0; }
+.daily-brief p { margin: 6px 0; line-height: 1.55; }
+.daily-brief-cards {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+.daily-watch { text-align: center; margin: 4px 0 0; }
+.daily-reveal h3 { margin-top: 0; }
+
+.vote-bars { margin: 14px 0 18px; }
+.vote-bars > p { margin: 0 0 8px; }
+.vote-row {
+  display: grid;
+  grid-template-columns: 64px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0;
+}
+.vote-label { font-size: 13px; font-weight: 600; text-transform: capitalize; }
+.vote-track {
+  height: 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--line, #33413a) 55%, transparent);
+  overflow: hidden;
+}
+.vote-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--teal, #4f8f9f) 70%, transparent);
+  transition: width 500ms ease;
+}
+.vote-fill.mine { background: var(--gold, #c9a24b); }
+.vote-pct { font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }

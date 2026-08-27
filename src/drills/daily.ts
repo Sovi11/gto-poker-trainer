@@ -1,10 +1,7 @@
-// The Daily Puzzle: one deterministic drill per calendar day, the same for
-// every player, with Wordle-style guess feedback and an emoji share grid.
-// Everything derives from the day number, so there is no backend and no sync —
-// determinism IS the infrastructure.
-
-import { mulberry32 } from '../engine/cards';
-import { Drill, DRILL_TYPES } from './types';
+// The Daily: one recorded hand per calendar day, the same for every player.
+// Everything derives from the day number, so picking the hand needs no
+// backend — determinism IS the infrastructure. (The optional community vote
+// split lives in lib/dailyVotes.ts.)
 
 // Daily #1 = 1 July 2026 (local calendar date, like Wordle's local midnight).
 const EPOCH = { y: 2026, m: 6, d: 1 }; // month is 0-indexed
@@ -13,32 +10,6 @@ export function dailyNumber(now: Date = new Date()): number {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const epoch = new Date(EPOCH.y, EPOCH.m, EPOCH.d);
   return Math.max(1, Math.floor((today.getTime() - epoch.getTime()) / 86_400_000) + 1);
-}
-
-// Rotate through every drill type so consecutive days never repeat a format,
-// then seed the generator from the day so the numbers/cards are fixed too.
-export function dailyDrill(n: number): Drill {
-  const type = DRILL_TYPES[(n - 1) % DRILL_TYPES.length];
-  const rng = mulberry32((n * 2654435761) >>> 0);
-  return type.generate(rng);
-}
-
-// --- Guess mechanics ---------------------------------------------------------
-
-export const MAX_NUMBER_GUESSES = 4;
-
-export type NumberFeedback = 'correct' | 'higher' | 'lower';
-
-export function judgeNumberGuess(guess: number, correct: number, tolerance: number): NumberFeedback {
-  if (Math.abs(guess - correct) <= tolerance) return 'correct';
-  return guess < correct ? 'higher' : 'lower';
-}
-
-// One entry per guess: hit or miss (misses carry the direction hint for numbers).
-export interface GuessRecord {
-  label: string; // what the player guessed (option text or number)
-  hit: boolean;
-  hint?: NumberFeedback;
 }
 
 // --- Streak ------------------------------------------------------------------
@@ -59,10 +30,12 @@ export function nextStreak(prev: DailyStreak, day: number): DailyStreak {
   return { current, best: Math.max(prev.best, current), lastSolvedDay: day };
 }
 
-// --- Share grid ----------------------------------------------------------------
+// --- Share text ---------------------------------------------------------------
 
-export function shareText(day: number, guesses: GuessRecord[], solved: boolean, maxGuesses: number, url: string): string {
-  const grid = guesses.map((g) => (g.hit ? '🟩' : '🟥')).join('');
-  const score = solved ? `${guesses.length}` : 'X';
-  return `♠ Fold Call Jam №${day} ${score}/${maxGuesses}\n${grid}\n${url}`;
+/** e.g. "♠ Fold Call Jam №58 ✅ matched the table (62% agreed)" + url. */
+export function shareText(day: number, matched: boolean, agreePct: number | null, url: string): string {
+  const verdict = matched ? '✅ matched the table' : '❌ went my own way';
+  const agree = agreePct !== null ? ` (${agreePct}% agreed with me)` : '';
+  return `♠ Fold Call Jam №${day} ${verdict}${agree}
+${url}`;
 }
