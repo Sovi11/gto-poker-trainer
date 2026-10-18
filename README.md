@@ -1,5 +1,8 @@
 # ♠ Fold Call or Jam
 
+**Chipzen competition bot:** remote runner, strategy, tests and benchmarks are
+documented in [docs/CHIPZEN.md](docs/CHIPZEN.md).
+
 Learn the math. Grind the bots. Print.
 
 A single-page web app for learning **Game-Theory-Optimal (GTO) poker** and putting it

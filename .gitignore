@@ -12,3 +12,5 @@ dist-ssr
 # local secrets
 .env
 .env.local
+chipzen.toml
+artifacts/
