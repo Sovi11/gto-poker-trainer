@@ -19,6 +19,13 @@ with a regression test and multiple verified live heartbeats.
 First practice match:
 https://chipzen.ai/spectate/f4caed41-b864-4eff-bb0a-c1c6380848dc
 
+**Result: completed, winner ALLIN**, verified on the Chipzen challenges page.
+This was an unrated house-bot exhibition, not a paid or season match. The
+runner resumed the in-progress match after the transport fix and remained
+connected through successive 15-second heartbeats to completion. A single
+win validates end-to-end operation, not a reliable estimate of playing strength.
+Replay: https://chipzen.ai/match/f4caed41-b864-4eff-bb0a-c1c6380848dc
+
 ## Frozen-policy holdout
 
 Command: `ARENA_PAIRS=500 ARENA_SEED=127931 npm run arena:benchmark`
