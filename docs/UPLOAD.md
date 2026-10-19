@@ -1,5 +1,18 @@
 # ALLIN upload
 
+## Uploaded October 19, 2026
+
+The verified archive was uploaded as [ALLIN-Hybrid](https://chipzen.ai/bots/ff5f2c3e-7b0c-4ab8-96b1-9fe84ee38f9f).
+Chipzen initially reported `REVIEWING`; creation and upload succeeded. This
+is separate from the existing External API bot `ALLIN`. The uploaded bot
+was not yet present in the Season 11 selector while its review was pending.
+No season entry was submitted.
+
+Archive SHA256: `3963b2b3b5eef9c5b463b1cfdb8d56e2f5dfd8c86e4dc416aac8f04c9e0ef984`.
+Image source: `f323cb62597d1b879ac97c4f4c86fbf9f58a9fe1`.
+
+## Build and upload procedure
+
 The upload artifact is **allin-chipzen-linux-amd64.tar.gz**, a gzipped Docker
 save archive, not a source ZIP. The GitHub `ALLIN upload image` workflow builds
 it from the `chipzen-arena` branch and includes `SHA256SUMS.txt`, image metadata,
