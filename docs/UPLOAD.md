@@ -3,10 +3,12 @@
 ## Uploaded October 19, 2026
 
 The verified archive was uploaded as [ALLIN-Hybrid](https://chipzen.ai/bots/ff5f2c3e-7b0c-4ab8-96b1-9fe84ee38f9f).
-Chipzen initially reported `REVIEWING`; creation and upload succeeded. This
-is separate from the existing External API bot `ALLIN`. The uploaded bot
-was not yet present in the Season 11 selector while its review was pending.
-No season entry was submitted.
+Chipzen completed review and reports **ACTIVE**. This is separate from the
+existing External API bot `ALLIN`. `ALLIN-Hybrid` is selected in the Season 11
+entry form and the final **Enter the season** button is enabled. No season
+entry was submitted: the browser policy requires the user to perform the
+final prize-competition entry action. Registration closes October 19 at
+23:59 UTC (October 20 at 05:29 IST).
 
 Archive SHA256: `3963b2b3b5eef9c5b463b1cfdb8d56e2f5dfd8c86e4dc416aac8f04c9e0ef984`.
 Image source: `f323cb62597d1b879ac97c4f4c86fbf9f58a9fe1`.
