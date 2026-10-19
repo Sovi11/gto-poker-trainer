@@ -9,7 +9,7 @@ flop/turn continuation search remain experimental and disabled in production.
 
 Fresh local checks pass **373 tests**, arena TypeScript, all four SDK
 conformance scenarios, the production web build, and the upload runner's
-token/start and ticket/resume WebSocket smoke tests. The container workflow
+token/start and ticket/resume WebSocket smoke tests on all four streets. The container workflow
 separately tests the compiled executable under 0.5 CPU, 256 MB, uid 10001,
 read-only rootfs and a 10 MB `/tmp` before exporting an image.
 

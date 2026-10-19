@@ -29,7 +29,8 @@ it does not make reverse engineering impossible.
 
 The workflow rejects an image above 200,000,000 bytes or an archive above
 250,000,000 bytes. Its smoke test exercises both token and ticket authentication,
-heartbeat, start/resume seat recovery, a legal action, and clean match exit
+heartbeat, start/resume seat recovery, legal decisions on all four streets
+within the 2-second budget, and clean match exit
 under the published resource limits. Platform validation remains the final
 check of compatibility with its actual executor and seccomp profile.
 
