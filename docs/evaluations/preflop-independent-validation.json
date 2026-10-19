@@ -1,0 +1,82 @@
+{
+  "seed": 99491323,
+  "samplesPerPair": 4096,
+  "trainedSeed": 4201943,
+  "results": [
+    {
+      "depthBB": 1,
+      "sbEV": -2.4421653935235987e-17,
+      "bestResponseGapBB": 0
+    },
+    {
+      "depthBB": 1.5,
+      "sbEV": 0.00028794300171987574,
+      "bestResponseGapBB": 0
+    },
+    {
+      "depthBB": 2,
+      "sbEV": 0.009516978666466553,
+      "bestResponseGapBB": 0.000037955085880503336
+    },
+    {
+      "depthBB": 2.5,
+      "sbEV": 0.02956261080153216,
+      "bestResponseGapBB": 0
+    },
+    {
+      "depthBB": 3,
+      "sbEV": 0.05178716475738201,
+      "bestResponseGapBB": 0.000010292498026926869
+    },
+    {
+      "depthBB": 4,
+      "sbEV": 0.06601272720626704,
+      "bestResponseGapBB": 0.00000396071890295269
+    },
+    {
+      "depthBB": 5,
+      "sbEV": 0.0562481448632499,
+      "bestResponseGapBB": 0.00004188552563673563
+    },
+    {
+      "depthBB": 6,
+      "sbEV": 0.03842104289765395,
+      "bestResponseGapBB": 0.0000748245606518104
+    },
+    {
+      "depthBB": 7,
+      "sbEV": 0.016888212773594258,
+      "bestResponseGapBB": 0.000032748463542934254
+    },
+    {
+      "depthBB": 8,
+      "sbEV": -0.004110893959423819,
+      "bestResponseGapBB": 0.00012999671168201059
+    },
+    {
+      "depthBB": 9,
+      "sbEV": -0.025374711182549848,
+      "bestResponseGapBB": 0.00013745341886754506
+    },
+    {
+      "depthBB": 10,
+      "sbEV": -0.045412691218187126,
+      "bestResponseGapBB": 0.00006011793222578792
+    },
+    {
+      "depthBB": 12,
+      "sbEV": -0.08255345519603532,
+      "bestResponseGapBB": 0.000026635905231197034
+    },
+    {
+      "depthBB": 15,
+      "sbEV": -0.12718175635967002,
+      "bestResponseGapBB": 0.00022659064525647646
+    },
+    {
+      "depthBB": 20,
+      "sbEV": -0.18297164298411653,
+      "bestResponseGapBB": 0
+    }
+  ]
+}

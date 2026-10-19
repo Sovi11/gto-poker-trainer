@@ -1,0 +1,31 @@
+{
+  "seed": 8063957,
+  "pairsPerCompletedDepth": 8000,
+  "variant": "hybrid",
+  "baseline": "frozen-original",
+  "status": "30BB and 20BB complete; interrupted 12BB block excluded",
+  "results": [
+    {
+      "depthBB": 30,
+      "hands": 16000,
+      "bbPer100": 6.017687499999991,
+      "approximate95CI": [
+        1.2191259091160915,
+        10.816249090883892
+      ],
+      "p95Ms": 30.255800000042655,
+      "maxMs": 91.44439999992028
+    },
+    {
+      "depthBB": 20,
+      "hands": 16000,
+      "bbPer100": 7.311249999999996,
+      "approximate95CI": [
+        3.5760193435502465,
+        11.046480656449745
+      ],
+      "p95Ms": 29.042000000015832,
+      "maxMs": 73.80909999995492
+    }
+  ]
+}

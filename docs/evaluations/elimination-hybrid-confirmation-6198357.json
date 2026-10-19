@@ -1,0 +1,21 @@
+{
+  "seed": 6198357,
+  "pairs": 100,
+  "samples": 800,
+  "variant": "hybrid",
+  "schedule": "100BB starting; blinds increase 1.5x every 20 hands; not a verified Season 11 schedule",
+  "results": [
+    {
+      "opponent": "baseline",
+      "matches": 200,
+      "wins": 108,
+      "winRate": 0.54,
+      "approximatePaired95CI": [
+        0.4989622691473402,
+        0.5810377308526599
+      ],
+      "totalHands": 15443,
+      "maxMs": 72.85169999999925
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "seed": 3199583,
+  "pairs": 150,
+  "samples": 1000,
+  "variant": "hybrid",
+  "baselineVariant": "frozen-original",
+  "results": [
+    {
+      "depthBB": 100,
+      "hands": 300,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 33.28870000000006,
+      "maxMs": 67.50289999999995
+    },
+    {
+      "depthBB": 40,
+      "hands": 300,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 32.33010000000104,
+      "maxMs": 55.65259999999944
+    }
+  ]
+}

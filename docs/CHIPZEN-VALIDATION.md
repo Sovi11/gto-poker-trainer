@@ -35,6 +35,14 @@ The original bot's two live exhibition wins validate connectivity, not the
 new candidate's strength against the Chipzen field. The upgraded candidate
 still needs platform upload validation and live matches.
 
+The [Linux image build](https://github.com/Sovi11/gto-poker-trainer/actions/runs/39259086332)
+passed on source commit `f323cb6`. The image is 188,374,963 bytes. Under the
+published CPU/memory limits, the eight smoke-test decisions across start and
+resume sessions all completed within 294 ms, including river CFR. This is a
+small compatibility sample, not a worst-case latency guarantee. The platform's
+custom seccomp profile was not available locally; platform upload validation
+is still required. Compact completed evaluation reports are in `evaluations/`.
+
 ## Original October 18 baseline
 
 The implementation passes a clean `npm ci`, both TypeScript checks, all

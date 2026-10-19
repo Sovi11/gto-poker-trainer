@@ -1,0 +1,13 @@
+{
+  "seed": 19873159,
+  "boardCount": 512,
+  "cases": 4096,
+  "oracleSamples": 1000,
+  "independentReferenceEvaluator": true,
+  "mse": 0.0007962656118108693,
+  "baselineMse": 0.008688929492897544,
+  "boardClustered95Improvement": [
+    0.007369663624836804,
+    0.008415664137336477
+  ]
+}
