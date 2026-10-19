@@ -6,14 +6,23 @@ import { nearestPushFold } from '../gto/pushfold';
 import { drawStrength, RangeBelief } from './ranges';
 import { equity } from './equity';
 import { solveRiver } from './river';
+import { preflopRangeEquity, shortStackPolicy, trainedHandPercentile } from './preflop-model';
+import equityNetworkData from './models/equity-network.json';
+import type { EquityNetwork } from './equity-model';
+import { solveContinuation } from './search';
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 type Raw = Record<string, unknown>;
-export interface BotOptions { rng?: () => number; samples?: number; river?: boolean; log?: boolean }
+export const STRATEGY_VARIANTS = ['baseline', 'short', 'hybrid', 'preflop', 'full', 'search'] as const;
+export type StrategyVariant = typeof STRATEGY_VARIANTS[number];
+export const PRODUCTION_VARIANT: StrategyVariant = 'hybrid';
+export function isStrategyVariant(value: string): value is StrategyVariant { return (STRATEGY_VARIANTS as readonly string[]).includes(value); }
+export interface BotOptions { rng?: () => number; samples?: number; river?: boolean; log?: boolean; variant?: StrategyVariant }
 
 export class ArenaBot extends Bot {
   own = new RangeBelief(); opponent = new RangeBelief();
   private seat = 0;
+  private matchId = '';
   private seatKnown = false;
   private dealer = 0;
   private dealerKnown = false;
@@ -34,13 +43,20 @@ export class ArenaBot extends Bot {
   private jamHands = 0;
   private countedPreflop = false;
   private countedJam = false;
+  private trainedHand = false;
   private rng: () => number;
   private options: BotOptions;
   lastDecision: { ms: number; method: string; equity?: number; action: string } | null = null;
 
-  constructor(options: BotOptions = {}) { super(); this.options = options; this.rng = options.rng ?? Math.random; }
+  constructor(options: BotOptions = {}) {
+    super();
+    const variant = options.variant ?? PRODUCTION_VARIANT;
+    if (!isStrategyVariant(variant)) throw new Error('Unknown strategy variant');
+    this.options = { ...options, variant }; this.rng = options.rng ?? Math.random;
+  }
 
   override onMatchStart(info: Raw): void {
+    this.matchId = String(info.match_id ?? '');
     const cfg = (info.game_config ?? {}) as Raw;
     this.bb = Number(cfg.big_blind ?? 100);
     const seats = info.seats as { seat: number; is_self?: boolean }[] | undefined;
@@ -66,6 +82,9 @@ export class ArenaBot extends Bot {
       this.committed = [0, 1].map(i => i === dealer ? this.bb / 2 : this.bb);
     }
     this.pot = Number(state.pot ?? this.committed.reduce((a, b) => a + b, 0));
+    if (this.options.variant === 'hybrid' && stacks && Math.min(...stacks) / this.bb <= 30) {
+      this.own = new RangeBelief(true); this.opponent = new RangeBelief(true); this.trainedHand = true;
+    }
   }
 
   // The SDK restores the snapshot and pending turn. Old range beliefs must not
@@ -80,7 +99,10 @@ export class ArenaBot extends Bot {
   }
 
   private resetHand(n: number): void {
-    this.hand = n; this.own = new RangeBelief(); this.opponent = new RangeBelief();
+    const trained = this.options.variant !== undefined && !['baseline', 'short', 'hybrid'].includes(this.options.variant);
+    const network = this.options.variant === 'full' || this.options.variant === 'search' ? equityNetworkData as EquityNetwork : undefined;
+    this.hand = n; this.own = new RangeBelief(trained, network); this.opponent = new RangeBelief(trained, network);
+    this.trainedHand = trained;
     this.board = []; this.phase = 'preflop'; this.committed = [0, 0]; this.preRaises = 0; this.lastAggressor = -1;
     this.countedPreflop = this.countedJam = false;
   }
@@ -116,7 +138,8 @@ export class ArenaBot extends Bot {
         if (owed > 0) { this.facing++; if (action === 'fold') this.folds++; }
         if (action === 'raise' || action === 'all_in') this.aggressions++;
       }
-      (seat === this.seat ? this.own : this.opponent).observe(action, amount / Math.max(this.pot, this.bb), this.aggression());
+      (seat === this.seat ? this.own : this.opponent).observe(action, amount / Math.max(this.pot, this.bb), this.aggression(),
+        { preflopRaises: this.preRaises, button: seat === this.dealer });
     }
     if (action === 'raise' || action === 'all_in') {
       this.committed[seat] = amount; this.lastAggressor = seat;
@@ -127,6 +150,14 @@ export class ArenaBot extends Bot {
 
   private aggression(): number { return (this.aggressions + 9) / (this.decisions + 20); }
   private foldRate(): number { return (this.folds + 10) / (this.facing + 24); }
+
+  override onMatchEnd(results: Raw): void {
+    const rows: Raw[] = Array.isArray(results) ? results : Array.isArray(results.results) ? results.results : [];
+    const own = rows.find(row => row.seat === this.seat);
+    if (this.options.log) console.log(JSON.stringify({ type: 'match_end', match: this.matchId, seat: this.seat,
+      finalStack: own?.final_stack, netChips: own?.net_chips,
+      errorCount: Array.isArray(own?.bot_errors) ? own.bot_errors.length : undefined }));
+  }
 
   override decide(input: GameState): Action {
     const started = performance.now();
@@ -152,18 +183,31 @@ export class ArenaBot extends Bot {
     this.pot = s.pot;
     let method = 'preflop', eq: number | undefined;
     let action: Action;
-    if (!board.length) action = this.preflop(s, hole as [number, number], ownCommitted);
+    if (!board.length) {
+      const effective = Math.min(s.yourStack + ownCommitted, s.opponentStacks[0] + ownCommitted + s.toCall) / this.bb;
+      if (this.options.variant === 'hybrid' && effective <= 30 && !this.trainedHand) {
+        const own = new RangeBelief(true), opponent = new RangeBelief(true);
+        own.weights.set(this.own.weights); opponent.weights.set(this.opponent.weights);
+        this.own = own; this.opponent = opponent; this.trainedHand = true;
+      }
+      const shortNode = effective <= 12 && ((s.yourSeat === s.dealerSeat && this.preRaises === 0) || (s.opponentStacks[0] === 0 && s.toCall > 0));
+      const trained = this.options.variant && this.options.variant !== 'baseline' && (this.options.variant !== 'short' || shortNode)
+        && (this.options.variant !== 'hybrid' || effective <= 30);
+      action = trained ? this.trainedPreflop(s, hole as [number, number], ownCommitted) : this.preflop(s, hole as [number, number], ownCommitted);
+    }
     else {
       const range = this.opponent.combos(hole);
       eq = equity(hole, board, range, this.rng, this.options.samples ?? 1800, started + 400);
       const river = board.length === 5 && this.options.river !== false
         ? solveRiver(s, ownCommitted, hole, this.own.combos(), this.opponent.combos(), this.rng) : null;
-      method = river ? 'river-cfr' : 'range-equity';
-      action = river ?? this.postflop(s, hole, eq, ownCommitted);
+      const continuation = this.options.variant === 'search' && !river
+        ? solveContinuation(s, ownCommitted, hole, this.own.combos(), this.opponent.combos(), this.rng, started + 650) : null;
+      method = river ? 'river-cfr' : continuation ? 'continuation-cfr' : 'range-equity';
+      action = river ?? continuation ?? this.postflop(s, hole, eq, ownCommitted);
     }
     action = legalize(s, action);
     this.lastDecision = { ms: performance.now() - started, method, equity: eq, action: action.action };
-    if (this.options.log) console.log(JSON.stringify({ type: 'decision', hand: s.handNumber, phase: s.phase, ...this.lastDecision, amount: action.amount }));
+    if (this.options.log) console.log(JSON.stringify({ type: 'decision', variant: this.options.variant, match: this.matchId, hand: s.handNumber, phase: s.phase, ...this.lastDecision, amount: action.amount }));
     return action;
   }
 
@@ -208,6 +252,51 @@ export class ArenaBot extends Bot {
 
   private raise(s: GameState, amount: number): Action { return legalize(s, Action.raiseTo(amount)); }
 
+  private trainedPreflop(s: GameState, hole: [number, number], committed: number): Action {
+    const pct = trainedHandPercentile(hole), cls = handClassOf(hole);
+    const effective = Math.min(s.yourStack + committed, s.opponentStacks[0] + committed + s.toCall) / this.bb;
+    const button = s.yourSeat === s.dealerSeat;
+    const raises = Math.max(this.preRaises, s.actionHistory.filter(a => a.action === 'raise' || a.action === 'all_in').length);
+    if (effective <= 12 && button && raises === 0) return this.rng() < shortStackPolicy(effective, hole).jam
+      ? this.raise(s, committed + s.yourStack) : Action.fold();
+    if (s.opponentStacks[0] === 0 && s.toCall > 0) {
+      const range = new RangeBelief(true).combos(hole);
+      const observedFraction = this.preflopHands >= 8 ? Math.min(.95, (this.jamHands + 1) / (this.preflopHands + 15)) : 0;
+      for (const c of range) {
+        const p = trainedHandPercentile(c.cards);
+        if (effective <= 12 && raises <= 1 && !button) {
+          c.weight = .005 + shortStackPolicy(effective, c.cards).jam;
+          if (observedFraction > .75) c.weight = Math.max(c.weight, p >= 1 - observedFraction ? 1 : .03);
+        } else {
+          const fraction = Math.max(effective <= 25 ? .18 : .055, observedFraction);
+          c.weight = p >= 1 - fraction ? 1 : .025;
+        }
+      }
+      let e = preflopRangeEquity(hole, range);
+      const call = Math.min(s.toCall, s.yourStack), pot = s.pot - Math.max(0, s.toCall - s.yourStack);
+      const price = call / Math.max(1, pot + call);
+      // Suit arrangements within a hand class matter close to the boundary.
+      if (Math.abs(e - price) < .025) e = equity(hole, [], range, this.rng, Math.max(2400, this.options.samples ?? 1800), performance.now() + 350);
+      return e >= price + .005 ? Action.call() : Action.fold();
+    }
+    if (raises === 0) {
+      if (button) return pct >= (this.foldRate() > .56 && this.observations > 30 ? .08 : .20)
+        ? this.raise(s, Math.round(this.bb * (effective < 25 ? 2 : 2.25))) : Action.fold();
+      return pct > .66 || (pct > .40 && cls.endsWith('s') && this.rng() < .22) ? this.raise(s, this.bb * 4) : Action.check();
+    }
+    const premium = parseRange('QQ+, AKs, AKo').has(cls);
+    if (premium || (pct > .925 && raises <= 1) || (raises === 1 && cls.endsWith('s') && cls.startsWith('A') && pct < .85 && this.rng() < .10)) {
+      const target = Math.round((committed + s.toCall) * (button ? 3 : 3.6));
+      return this.raise(s, effective < 23 || target > (committed + s.yourStack) * .38 ? committed + s.yourStack : target);
+    }
+    if (s.toCall === 0) return Action.check();
+    const price = Math.min(s.toCall, s.yourStack) / Math.max(1, s.pot + Math.min(s.toCall, s.yourStack));
+    const e = preflopRangeEquity(hole, this.opponent.combos(hole));
+    const realization = raises >= 3 ? .76 : raises === 2 ? .82 : button ? .94 : .86;
+    const minimum = raises >= 3 ? .92 : raises === 2 ? .72 : .16;
+    return pct >= minimum && e * realization > price + .015 ? Action.call() : Action.fold();
+  }
+
   private postflop(s: GameState, hole: number[], eq: number, committed: number): Action {
     const call = Math.min(s.toCall, s.yourStack), contestable = s.pot - Math.max(0, s.toCall - s.yourStack);
     const price = call / Math.max(1, contestable + call);
@@ -235,12 +324,16 @@ export class ArenaBot extends Bot {
 }
 
 export function legalize(s: GameState, action: Action): Action {
+  if (action.action === 'fold' && s.validActions.includes('check')) return Action.check();
   if (action.action === 'raise') {
     if (s.validActions.includes('raise') && s.maxRaise >= s.minRaise && s.maxRaise > 0) {
       return Action.raiseTo(clamp(Math.round(action.amount!), s.minRaise, s.maxRaise));
     }
     // A requested bet is never silently turned into an unbounded shove.
     if (s.validActions.includes('all_in') && action.amount! >= s.yourStack) return Action.allIn();
+    // Value-raise intent must not become a fold when a short all-in closes
+    // raising rights. Call only when its cost fits the requested wager.
+    if (s.validActions.includes('call') && action.amount! >= Math.min(s.toCall, s.yourStack)) return Action.call();
   } else if (s.validActions.includes(action.action)) return action;
   if (s.validActions.includes('check')) return Action.check();
   if (s.validActions.includes('fold')) return Action.fold();

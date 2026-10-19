@@ -79,6 +79,14 @@ export class HoldemHand {
 
     this.deal();
     this.postBlinds();
+    // In elimination games the last few chips can go in as forced blinds.
+    // There is no betting decision if everyone is all-in, or the sole live
+    // player has already covered every all-in contribution.
+    const live = this.activeNotAllIn();
+    if (live.length <= 1) {
+      this.currentBet = Math.max(...this.players.map(p => p.committed));
+      if (live.length === 0 || live[0].committed >= this.currentBet) this.nextStreet();
+    }
   }
 
   private deal(): void {

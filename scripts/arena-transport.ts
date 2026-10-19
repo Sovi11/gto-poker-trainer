@@ -24,7 +24,7 @@ export const observedTransport: Transport = async (url, options) => {
     const raw = String(data);
     try {
       const frame = JSON.parse(raw);
-      if (['hello', 'matched', 'evict', 'error', 'ping'].includes(frame.type)) {
+      if (['hello', 'matched', 'evict', 'error', 'ping', 'action_rejected', 'action_timeout', 'match_end'].includes(frame.type)) {
         console.log(JSON.stringify({ type: 'connection', channel: label, event: frame.type, at: new Date().toISOString() }));
       }
     } catch { /* Protocol parser handles malformed input. */ }

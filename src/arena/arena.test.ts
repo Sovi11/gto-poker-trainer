@@ -47,9 +47,13 @@ describe('arena protocol and strategy', () => {
   });
   it('does not turn a small requested raise into a forced shove after betting is closed', () => {
     const s = state({ validActions: ['call', 'fold'], minRaise: 0, maxRaise: 0 });
-    expect(legalize(s, Action.raiseTo(250)).action).toBe('fold');
+    expect(legalize(s, Action.raiseTo(250)).action).toBe('call');
     const s2 = state({ validActions: ['check', 'all_in'], yourStack: 5000 });
     expect(legalize(s2, Action.raiseTo(200)).action).toBe('check');
+  });
+  it('never folds for free and never calls more than the intended raise', () => {
+    expect(legalize(state({ validActions: ['fold', 'check'], toCall: 0 }), Action.fold()).action).toBe('check');
+    expect(legalize(state({ validActions: ['fold', 'call'], toCall: 5000, minRaise: 0, maxRaise: 0 }), Action.raiseTo(200)).action).toBe('fold');
   });
   it('uses raise-to offsets and an outstanding wager in the river tree', () => {
     const s = state({ phase: 'river', pot: 1400, toCall: 400, yourStack: 3000, opponentStacks: [2600], minRaise: 1000, maxRaise: 3200 });

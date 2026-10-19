@@ -1,0 +1,59 @@
+name: ALLIN upload image
+on:
+  workflow_dispatch:
+  push:
+    branches: [chipzen-arena]
+    paths:
+      - 'Dockerfile.arena'
+      - '.github/workflows/arena-image.yml'
+      - '.dockerignore'
+      - 'src/**'
+      - 'scripts/arena-*'
+      - 'vendor/**'
+permissions:
+  contents: read
+jobs:
+  upload-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run arena:check && npm test && npm run arena:conformance && npm run build
+      - run: docker build --platform linux/amd64 -f Dockerfile.arena -t allin:upload .
+      - name: Enforce image contract and size
+        shell: bash
+        run: |
+          docker image inspect allin:upload > image-inspect.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const [image] = JSON.parse(fs.readFileSync('image-inspect.json'));
+          assert.ok(image.Size < 200 * 1000 * 1000, `Image too large: ${image.Size}`);
+          assert.equal(image.Architecture, 'amd64');
+          assert.equal(image.Config.User, '10001:10001');
+          assert.ok(image.Config.Entrypoint.length);
+          console.log(`Verified image: ${image.Size} bytes`);
+          NODE
+      - name: Exercise compiled executable inside platform resource limits
+        run: node scripts/arena-image-smoke.mjs allin:upload
+      - name: Export upload archive
+        shell: bash
+        run: |
+          mkdir -p release
+          docker save allin:upload | gzip -9 > release/allin-chipzen-linux-amd64.tar.gz
+          test "$(stat -c%s release/allin-chipzen-linux-amd64.tar.gz)" -lt 250000000
+          cp image-inspect.json release/
+          printf '%s\n' "$GITHUB_SHA" > release/SOURCE-COMMIT.txt
+          cd release
+          sha256sum allin-chipzen-linux-amd64.tar.gz > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allin-chipzen-upload
+          path: release/
+          compression-level: 0
+          retention-days: 30

@@ -1,13 +1,15 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { BOTS } from '../src/bots/personalities';
 import { mulberry32 } from '../src/engine/cards';
-import { ArenaBot } from '../src/arena/bot';
+import { ArenaBot, BotOptions } from '../src/arena/bot';
 import { playLocal } from '../src/arena/local';
 
 const pairs = Number(process.env.ARENA_PAIRS ?? 100);
 if (!Number.isInteger(pairs) || pairs < 2) throw new Error('ARENA_PAIRS must be at least 2');
 const seedBase = Number(process.env.ARENA_SEED ?? 78193);
 const samples = Number(process.env.ARENA_SAMPLES ?? 1800);
+const variant = process.env.ARENA_VARIANT as BotOptions['variant'];
+const label = process.env.ARENA_LABEL;
 if (!Number.isInteger(samples) || samples < 128) throw new Error('ARENA_SAMPLES must be at least 128');
 const opponents = [...BOTS, 'random', 'call', 'fold', 'jam'] as const;
 const selected = process.env.ARENA_OPPONENT;
@@ -17,7 +19,7 @@ for (let index = 0; index < opponents.length; index++) {
   if (selected && name !== selected) continue;
   const pairProfits = [], times: number[] = []; let cfr = 0;
   const bots = [0, 1].map(seat => {
-    const bot = new ArenaBot({ rng: mulberry32(seedBase ^ (index * 1111 + seat * 555)), samples, river: process.env.ARENA_NO_CFR !== '1' });
+    const bot = new ArenaBot({ rng: mulberry32(seedBase ^ (index * 1111 + seat * 555)), samples, river: process.env.ARENA_NO_CFR !== '1', variant });
     bot.onMatchStart({ game_config: { big_blind: 100 }, seats: [{ seat, is_self: true }] }); return bot;
   });
   for (let i = 0; i < pairs; i++) {
@@ -36,4 +38,4 @@ for (let index = 0; index < opponents.length; index++) {
   results.push(row); console.log(JSON.stringify(row));
 }
 mkdirSync('artifacts', { recursive: true });
-writeFileSync(`artifacts/arena-benchmark-${seedBase}.json`, JSON.stringify({ seed: seedBase, pairs, samples, river: process.env.ARENA_NO_CFR !== '1', depthsBB: [100, 40, 15, 8], note: 'Local trainer opponents; duplicate deals with seats swapped. Confidence intervals use paired deals. Not evidence of Chipzen ranking or tournament performance.', results }, null, 2) + '\n');
+writeFileSync(`artifacts/arena-benchmark-${label ? label + '-' : ''}${seedBase}.json`, JSON.stringify({ seed: seedBase, pairs, samples, variant: variant ?? 'default', river: process.env.ARENA_NO_CFR !== '1', depthsBB: [100, 40, 15, 8], note: 'Local trainer opponents; duplicate deals with seats swapped. Confidence intervals use paired deals. Not evidence of Chipzen ranking or tournament performance.', results }, null, 2) + '\n');

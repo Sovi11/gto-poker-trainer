@@ -1,4 +1,41 @@
-# Local validation — October 18, 2026
+# Validation — October 19, 2026
+
+## Upload candidate
+
+The production default is now `hybrid`: trained preflop equity/range rankings
+at effective stacks up to 30 BB, learned jam/fold policies up to 12 BB, and
+the original deep-stack and postflop decision rules. Neural range equity and
+flop/turn continuation search remain experimental and disabled in production.
+
+Fresh local checks pass **373 tests**, arena TypeScript, all four SDK
+conformance scenarios, the production web build, and the upload runner's
+token/start and ticket/resume WebSocket smoke tests. The container workflow
+separately tests the compiled executable under 0.5 CPU, 256 MB, uid 10001,
+read-only rootfs and a 10 MB `/tmp` before exporting an image.
+
+Independent paired-deal comparison against the frozen original, seed 8063957:
+
+| Effective stack | Hands | Gain BB/100 | Approximate paired 95% interval |
+|---|---:|---:|---:|
+| 30 BB | 16,000 | +6.02 | +1.22 to +10.82 |
+| 20 BB | 16,000 | +7.31 | +3.58 to +11.05 |
+
+These are the two completed depth blocks captured from the experiment log;
+the interrupted 12 BB block is excluded. At 40 and 100 BB a 600-hand
+identical-policy control returned exactly zero. A separate short-stack-only
+confirmation over 40,000 hands gained +3.29 BB/100 at 5 BB and +3.32 at 10 BB.
+
+Hybrid won 108/200 rising-blind elimination matches against the original
+(seed 6198357; paired approximate 95% win-rate interval 49.90%–58.10%).
+That interval includes 50%, so tournament superiority is unproven. The search
+variant won 104/200 on a separate seed; its deep-stack holdout was weaker,
+so it was not selected. See [MODEL-TRAINING.md](MODEL-TRAINING.md).
+
+The original bot's two live exhibition wins validate connectivity, not the
+new candidate's strength against the Chipzen field. The upgraded candidate
+still needs platform upload validation and live matches.
+
+## Original October 18 baseline
 
 The implementation passes a clean `npm ci`, both TypeScript checks, all
 **362 tests**, the four official SDK conformance scenarios, and the web

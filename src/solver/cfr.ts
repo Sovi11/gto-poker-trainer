@@ -25,6 +25,8 @@ export interface SolveInput {
   prior0: Float64Array;
   prior1: Float64Array;
   outcome: Int8Array;
+  /** Optional continuation showdown equity for an unfinished board. */
+  equity?: Float64Array;
   iterations?: number;
 }
 
@@ -90,6 +92,17 @@ export function solve(input: SolveInput): Solution {
         let s = 0;
         for (let i = 0; i < n0; i++) if (outcome[i * n1 + j] !== BLOCKED) s += r0[i];
         v1[j] = pay1 * s;
+      }
+      return { v0, v1 };
+    }
+
+    if (input.equity) {
+      for (let i = 0; i < n0; i++) for (let j = 0; j < n1; j++) {
+        const idx = i * n1 + j;
+        if (outcome[idx] === BLOCKED) continue;
+        const e = input.equity[idx];
+        v0[i] += r1[j] * (e * (pot + c1) - (1 - e) * c0);
+        v1[j] += r0[i] * ((1 - e) * (pot + c0) - e * c1);
       }
       return { v0, v1 };
     }

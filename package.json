@@ -15,7 +15,12 @@
     "arena:test": "vitest run src/arena",
     "arena:check": "tsc --noEmit -p tsconfig.arena.json",
     "arena:conformance": "tsx scripts/arena-conformance.ts",
-    "arena:benchmark": "tsx scripts/arena-benchmark.ts"
+    "arena:benchmark": "tsx scripts/arena-benchmark.ts",
+    "arena:train-preflop": "tsx scripts/arena-train-preflop.ts",
+    "arena:train-equity": "tsx scripts/arena-train-equity.ts",
+    "arena:validate-preflop": "tsx scripts/arena-validate-preflop.ts",
+    "arena:compare": "tsx scripts/arena-compare.ts",
+    "arena:elimination": "tsx scripts/arena-elimination.ts"
   },
   "dependencies": {
     "@chipzen-ai/bot": "file:vendor/chipzen-ai-bot-0.3.1.tgz",

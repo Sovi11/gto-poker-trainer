@@ -1,0 +1,20 @@
+# Compiled executable: no strategy source or local credentials in the final image.
+FROM oven/bun:1.3.0 AS builder
+WORKDIR /build
+COPY vendor/chipzen-ai-bot-0.3.1.tgz ./sdk.tgz
+RUN printf '{"dependencies":{"@chipzen-ai/bot":"file:./sdk.tgz","ws":"8.22.0"}}' > package.json \
+    && bun install --production
+COPY src/ ./src/
+COPY scripts/arena-container.ts ./scripts/arena-container.ts
+RUN bun build --compile --minify --target=bun-linux-x64 scripts/arena-container.ts --outfile=/build/allin
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates dumb-init \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /bot
+COPY --from=builder --chmod=555 /build/allin /bot/allin
+COPY vendor/CHIPZEN-LICENSE /bot/CHIPZEN-LICENSE
+COPY vendor/CHIPZEN-NOTICE /bot/CHIPZEN-NOTICE
+COPY LICENSE /bot/LICENSE
+USER 10001:10001
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/bot/allin"]
