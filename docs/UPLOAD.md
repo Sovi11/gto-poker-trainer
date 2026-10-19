@@ -13,6 +13,18 @@ An unrated heads-up challenge from ALLIN-Hybrid to BonnieBlue was sent on
 October 19. The challenges page initially reports `pending`, awaiting the
 opponent's acceptance. This is separate from the season fixtures.
 
+Six additional unrated house-bot matches were dispatched on October 19,
+all confirmed `running` on the challenges page:
+
+| Opponent | Match |
+|---|---|
+| PluriBot | `002176f2-e4c3-488f-aa29-3baaf371ba04` |
+| pebble | `40970d1d-7630-4c77-a359-8807bbd3f26e` |
+| fledge | `e3c62f39-a08a-4077-8da0-63b3ff3e119e` |
+| 5ur9e | `08581c5b-359f-46be-9995-c8a728acc61d` |
+| mochi | `52d56292-82d1-4b83-8117-57b9a0db6108` |
+| patches | `0a2ac020-4e8b-429d-9d40-4709b137fa30` |
+
 Archive SHA256: `3963b2b3b5eef9c5b463b1cfdb8d56e2f5dfd8c86e4dc416aac8f04c9e0ef984`.
 Image source: `f323cb62597d1b879ac97c4f4c86fbf9f58a9fe1`.
 
