@@ -1,0 +1,66 @@
+{
+  "seed": 241031,
+  "pairs": 40,
+  "samples": 600,
+  "variant": "hybrid",
+  "contextualRanges": false,
+  "riverSafety": false,
+  "baselineVariant": "hybrid",
+  "results": [
+    {
+      "depthBB": 100,
+      "hands": 80,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 49.65299999999979,
+      "maxMs": 61.43090000000029
+    },
+    {
+      "depthBB": 40,
+      "hands": 80,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 34.70420000000013,
+      "maxMs": 57.730100000000675
+    },
+    {
+      "depthBB": 20,
+      "hands": 80,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 35.95550000000003,
+      "maxMs": 52.242200000000594
+    },
+    {
+      "depthBB": 10,
+      "hands": 80,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 1.2137999999995372,
+      "maxMs": 13.486800000000585
+    },
+    {
+      "depthBB": 5,
+      "hands": 80,
+      "bbPer100": 0,
+      "approximate95CI": [
+        0,
+        0
+      ],
+      "p95Ms": 10.919700000000375,
+      "maxMs": 13.123999999999796
+    }
+  ]
+}

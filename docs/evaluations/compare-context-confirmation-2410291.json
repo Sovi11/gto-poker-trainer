@@ -1,0 +1,33 @@
+{
+  "seed": 2410291,
+  "pairs": 2000,
+  "samples": 1000,
+  "variant": "hybrid",
+  "contextualRanges": true,
+  "riverSafety": false,
+  "baselineVariant": "hybrid",
+  "results": [
+    {
+      "depthBB": 40,
+      "hands": 4000,
+      "bbPer100": 5.4082500000000024,
+      "approximate95CI": [
+        -2.6073791522025056,
+        13.423879152202511
+      ],
+      "p95Ms": 28.52709999999206,
+      "maxMs": 151.50780000000668
+    },
+    {
+      "depthBB": 20,
+      "hands": 4000,
+      "bbPer100": 0.8334999999999987,
+      "approximate95CI": [
+        -4.459524654325509,
+        6.1265246543255065
+      ],
+      "p95Ms": 31.877699999982724,
+      "maxMs": 169.24099999997998
+    }
+  ]
+}

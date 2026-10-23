@@ -4,7 +4,7 @@
 
 **Goal:** Evaluate preflop position/raise-count range conditioning independently of the equity network, preserving the uploaded hybrid policy.
 
-**Architecture:** Add an opt-in `contextualRanges` bot option. Pass it through every range reset. Compare the same hybrid policy with the option on/off using duplicate deals and independent seeds. No production-default change or platform deployment in this experiment.
+**Architecture:** Add an opt-in `contextualRanges` bot option. Pass it through every range reset. Compare the same hybrid policy with the option on/off using duplicate deals and independent seeds. No contextual-range promotion or platform deployment in this experiment; the separately proven river safety correction below is enabled only in new builds.
 
 **Tech Stack:** TypeScript, Vitest, existing SDK/local harness.
 
@@ -20,11 +20,11 @@
 
 ## Tasks
 
-- [ ] Add failing range-context and bot-reset tests; run and observe failures.
-- [ ] Add independent context flag in `src/arena/ranges.ts` and propagate in `src/arena/bot.ts`; pass focused tests.
-- [ ] Add explicit candidate/baseline options and provenance to paired comparison/field harnesses; run identical-policy control.
-- [ ] Run development comparison, independent confirmation and opponent-field checks; record outcomes without changing production defaults.
-- [ ] Run full tests, TypeScript, SDK conformance and build; request focused review; commit and push.
+- [x] Add failing range-context and bot-reset tests; run and observe failures.
+- [x] Add independent context flag in `src/arena/ranges.ts` and propagate in `src/arena/bot.ts`; pass focused tests.
+- [x] Add explicit candidate/baseline options and provenance to paired comparison/field harnesses; run identical-policy control.
+- [x] Run development comparison, independent confirmation and opponent-field checks; record outcomes and keep context disabled.
+- [x] Run full tests, TypeScript, SDK conformance and build; request focused review; commit and push.
 
 ## Evidence-driven scope addition
 

@@ -4,6 +4,7 @@ import { ArenaBot } from './bot';
 
 for (const [name, hole, board] of [
   ['exclusive nuts', ['Ah', 'Kh'], ['Qh', 'Jh', 'Th', '2s', '3d']],
+  ['nut flush with a blocking ace', ['Ah', '2c'], ['Kh', 'Qh', '7h', '4h', '3c']],
   ['board-only guaranteed chop', ['2c', '3d'], ['Ah', 'Kh', 'Qh', 'Jh', 'Th']],
 ] as const) it(`never folds ${name} at the low edge of the solver random draw`, () => {
   const state = parseGameState({ valid_actions: ['fold', 'call'], state: { hand_number: 1, phase: 'river',

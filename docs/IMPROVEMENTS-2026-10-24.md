@@ -69,15 +69,22 @@ Field seed 2410247, 1,200 hands per policy per opponent, likewise showed no
 clear gain: improvement point estimates were +4.85 vs maniac, -4.36 vs station,
 -4.70 vs GTO trainer, -21.22 vs shark and 0 vs jam. Every approximate interval
 included zero. These trainer opponents do not represent the live Chipzen
-field. Independent confirmation uses seed 2410291 at 40 and 20 BB; its final
-report will be retained with the other compact reports in `evaluations/`.
+field. Independent confirmation at seed 2410291, 4,000 hands per depth,
+returned +5.41 BB/100 at 40 BB (approximate interval -2.61 to +13.42) and
++0.83 at 20 BB (-4.46 to +6.13). Neither excludes zero. The complete compact
+reports, including the identical-policy control, are retained in `evaluations/`.
+These descriptive intervals are not calibrated tournament-strength bounds.
 
 ## Validation and reproduction
 
-Fresh verification: 385 tests, arena TypeScript, four SDK conformance scenarios,
+Fresh verification: 386 tests, arena TypeScript, four SDK conformance scenarios,
 local upload-runner start/resume tests on all streets, and production web build
-pass. A fresh reviewer reported no important findings. Container resource
-validation is performed by the image workflow on push.
+pass. A fresh reviewer reported no important findings. The
+[Linux image workflow](https://github.com/Sovi11/gto-poker-trainer/actions/runs/40028860746)
+passed on production code commit `095209a`: image 188,374,626 bytes; both
+start/resume four-street smoke tests passed under resource limits, max observed
+295.5 ms. The final added blocker-specific regression raises local test count
+from that CI run's 385 to 386 without changing production code.
 
 ```powershell
 $env:ARENA_VARIANT = 'hybrid'
