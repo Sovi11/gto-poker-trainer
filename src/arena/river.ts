@@ -1,7 +1,17 @@
 import { Action, GameState } from '@chipzen-ai/bot';
 import { solve, BLOCKED } from '../solver/cfr';
 import { BuiltTree, DecisionNode, TreeNode, Action as TreeAction, Player } from '../solver/tree';
-import { Combo, sampleRange } from './ranges';
+import { Combo, HANDS, sampleRange } from './ranges';
+import { evaluate } from './evaluate';
+
+// This guard enumerates all possible holdings, independently of posterior
+// weights or CFR sampling. Ties count as unbeaten: calling cannot lose chips
+// relative to folding when the player is guaranteed at least half the pot.
+export function unbeatableRiver(hole: number[], board: number[]): boolean {
+  if (hole.length !== 2 || board.length !== 5) return false;
+  const dead = new Set([...hole, ...board]), rank = evaluate([...hole, ...board]);
+  return !HANDS.some(cards => !cards.some(c => dead.has(c)) && evaluate([...cards, ...board]) > rank);
+}
 
 // Build from the actual outstanding wager, not from an invented start-of-street
 // pot. Contributions are relative to this decision; raises are translated back

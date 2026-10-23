@@ -12,7 +12,9 @@ if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) throw new Er
 const variant = process.env.CHIPZEN_STRATEGY ?? PRODUCTION_VARIANT;
 if (!isStrategyVariant(variant)) throw new Error('Unknown CHIPZEN_STRATEGY');
 console.log(`Starting Fold Call or Jam (${variant} strategy) in the Chipzen production lobby. Keep this process online during fixtures.`);
-await runExternalBot(() => new ArenaBot({ log: true, variant }), {
+await runExternalBot(() => new ArenaBot({ log: true, variant,
+  contextualRanges: process.env.CHIPZEN_CONTEXT_RANGES === '1' ? true : undefined,
+  riverSafety: process.env.CHIPZEN_RIVER_SAFETY === '0' ? false : undefined }), {
   botId: process.env.CHIPZEN_BOT_ID,
   token: process.env.CHIPZEN_EXTBOT_TOKEN,
   env: 'prod', clientName: 'fold-call-or-jam', maxMatches: limit,

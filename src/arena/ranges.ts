@@ -33,7 +33,8 @@ export class RangeBelief {
   private key = '';
   private percentiles = PREFLOP;
   board: number[] = [];
-  constructor(private trained = false, private network?: EquityNetwork) { this.percentiles = trained ? TRAINED_PREFLOP : PREFLOP; }
+  constructor(private trained = false, private network?: EquityNetwork,
+    private contextualPreflop = Boolean(network)) { this.percentiles = trained ? TRAINED_PREFLOP : PREFLOP; }
 
   setBoard(board: number[]): void {
     const key = board.join(','); if (key === this.key) return;
@@ -63,12 +64,12 @@ export class RangeBelief {
       const p = this.percentiles[i], draw = pre ? 0 : drawStrength(HANDS[i], this.board), d = this.network ? 0 : draw;
       let likelihood = 1;
       if (action === 'raise' || action === 'all_in') {
-        const threshold = pre ? this.network && context
+        const threshold = pre ? this.contextualPreflop && context
           ? context.preflopRaises === 0 ? (context.button ? .20 : .55) : context.preflopRaises === 1 ? .91 : .975
           : (sizeToPot > 2 ? .90 : .48) : .68 + Math.min(.20, sizeToPot * .10);
         likelihood = .04 + .82 * sigmoid((p - threshold) * 13) + draw * 1.3 + aggression * .16 * (1 - p);
       } else if (action === 'call') {
-        const threshold = pre ? this.network && context ? context.preflopRaises <= 1 ? .25 : context.preflopRaises === 2 ? .76 : .94
+        const threshold = pre ? this.contextualPreflop && context ? context.preflopRaises <= 1 ? .25 : context.preflopRaises === 2 ? .76 : .94
           : .35 + Math.min(.5, sizeToPot * .12) : .28 + Math.min(.5, sizeToPot * .22);
         likelihood = .06 + .80 * sigmoid((p + d - threshold) * 10);
       } else if (action === 'check') likelihood = .92 - .35 * sigmoid((p - .82) * 12);

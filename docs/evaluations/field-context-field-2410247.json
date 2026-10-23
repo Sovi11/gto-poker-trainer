@@ -1,0 +1,77 @@
+{
+  "seed": 2410247,
+  "pairs": 600,
+  "samples": 1000,
+  "variant": "hybrid",
+  "contextualRanges": true,
+  "baselineVariant": "hybrid",
+  "depthsBB": [
+    100,
+    40,
+    20,
+    10,
+    5
+  ],
+  "results": [
+    {
+      "opponent": "maniac",
+      "handsPerPolicy": 1200,
+      "candidateBBPer100": 35.70249999999999,
+      "baselineBBPer100": 30.851666666666667,
+      "improvementBBPer100": 4.850833333333333,
+      "approximatePaired95Improvement": [
+        -9.500523765308348,
+        19.202190431975012
+      ],
+      "maxMs": 160.96549999999934
+    },
+    {
+      "opponent": "station",
+      "handsPerPolicy": 1200,
+      "candidateBBPer100": 35.370833333333316,
+      "baselineBBPer100": 39.72916666666668,
+      "improvementBBPer100": -4.3583333333333325,
+      "approximatePaired95Improvement": [
+        -29.54115766107075,
+        20.824490994404083
+      ],
+      "maxMs": 62.10659999999916
+    },
+    {
+      "opponent": "gto",
+      "handsPerPolicy": 1200,
+      "candidateBBPer100": 11.522500000000006,
+      "baselineBBPer100": 16.224999999999998,
+      "improvementBBPer100": -4.7025000000000015,
+      "approximatePaired95Improvement": [
+        -24.407089166766262,
+        15.002089166766257
+      ],
+      "maxMs": 52.291099999973085
+    },
+    {
+      "opponent": "shark",
+      "handsPerPolicy": 1200,
+      "candidateBBPer100": -8.741666666666667,
+      "baselineBBPer100": 12.475000000000003,
+      "improvementBBPer100": -21.21666666666667,
+      "approximatePaired95Improvement": [
+        -46.2322678026606,
+        3.7989344693272695
+      ],
+      "maxMs": 50.390199999994365
+    },
+    {
+      "opponent": "jam",
+      "handsPerPolicy": 1200,
+      "candidateBBPer100": 266.5,
+      "baselineBBPer100": 266.5,
+      "improvementBBPer100": 0,
+      "approximatePaired95Improvement": [
+        0,
+        0
+      ],
+      "maxMs": 12.020600000018021
+    }
+  ]
+}

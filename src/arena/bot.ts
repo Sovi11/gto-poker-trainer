@@ -5,7 +5,7 @@ import { parseRange } from '../engine/range';
 import { nearestPushFold } from '../gto/pushfold';
 import { drawStrength, RangeBelief } from './ranges';
 import { equity } from './equity';
-import { solveRiver } from './river';
+import { solveRiver, unbeatableRiver } from './river';
 import { preflopRangeEquity, shortStackPolicy, trainedHandPercentile } from './preflop-model';
 import equityNetworkData from './models/equity-network.json';
 import type { EquityNetwork } from './equity-model';
@@ -17,7 +17,7 @@ export const STRATEGY_VARIANTS = ['baseline', 'short', 'hybrid', 'preflop', 'ful
 export type StrategyVariant = typeof STRATEGY_VARIANTS[number];
 export const PRODUCTION_VARIANT: StrategyVariant = 'hybrid';
 export function isStrategyVariant(value: string): value is StrategyVariant { return (STRATEGY_VARIANTS as readonly string[]).includes(value); }
-export interface BotOptions { rng?: () => number; samples?: number; river?: boolean; log?: boolean; variant?: StrategyVariant }
+export interface BotOptions { rng?: () => number; samples?: number; river?: boolean; log?: boolean; variant?: StrategyVariant; contextualRanges?: boolean; riverSafety?: boolean }
 
 export class ArenaBot extends Bot {
   own = new RangeBelief(); opponent = new RangeBelief();
@@ -46,13 +46,13 @@ export class ArenaBot extends Bot {
   private trainedHand = false;
   private rng: () => number;
   private options: BotOptions;
-  lastDecision: { ms: number; method: string; equity?: number; action: string } | null = null;
+  lastDecision: { ms: number; method: string; equity?: number; action: string; pot: number; call: number; callPrice: number; callEV?: number } | null = null;
 
   constructor(options: BotOptions = {}) {
     super();
     const variant = options.variant ?? PRODUCTION_VARIANT;
     if (!isStrategyVariant(variant)) throw new Error('Unknown strategy variant');
-    this.options = { ...options, variant }; this.rng = options.rng ?? Math.random;
+    this.options = { ...options, variant, riverSafety: options.riverSafety ?? true }; this.rng = options.rng ?? Math.random;
   }
 
   override onMatchStart(info: Raw): void {
@@ -83,7 +83,7 @@ export class ArenaBot extends Bot {
     }
     this.pot = Number(state.pot ?? this.committed.reduce((a, b) => a + b, 0));
     if (this.options.variant === 'hybrid' && stacks && Math.min(...stacks) / this.bb <= 30) {
-      this.own = new RangeBelief(true); this.opponent = new RangeBelief(true); this.trainedHand = true;
+      this.own = new RangeBelief(true, undefined, this.options.contextualRanges); this.opponent = new RangeBelief(true, undefined, this.options.contextualRanges); this.trainedHand = true;
     }
   }
 
@@ -101,7 +101,7 @@ export class ArenaBot extends Bot {
   private resetHand(n: number): void {
     const trained = this.options.variant !== undefined && !['baseline', 'short', 'hybrid'].includes(this.options.variant);
     const network = this.options.variant === 'full' || this.options.variant === 'search' ? equityNetworkData as EquityNetwork : undefined;
-    this.hand = n; this.own = new RangeBelief(trained, network); this.opponent = new RangeBelief(trained, network);
+    this.hand = n; this.own = new RangeBelief(trained, network, this.options.contextualRanges); this.opponent = new RangeBelief(trained, network, this.options.contextualRanges);
     this.trainedHand = trained;
     this.board = []; this.phase = 'preflop'; this.committed = [0, 0]; this.preRaises = 0; this.lastAggressor = -1;
     this.countedPreflop = this.countedJam = false;
@@ -186,7 +186,7 @@ export class ArenaBot extends Bot {
     if (!board.length) {
       const effective = Math.min(s.yourStack + ownCommitted, s.opponentStacks[0] + ownCommitted + s.toCall) / this.bb;
       if (this.options.variant === 'hybrid' && effective <= 30 && !this.trainedHand) {
-        const own = new RangeBelief(true), opponent = new RangeBelief(true);
+        const own = new RangeBelief(true, undefined, this.options.contextualRanges), opponent = new RangeBelief(true, undefined, this.options.contextualRanges);
         own.weights.set(this.own.weights); opponent.weights.set(this.opponent.weights);
         this.own = own; this.opponent = opponent; this.trainedHand = true;
       }
@@ -205,8 +205,15 @@ export class ArenaBot extends Bot {
       method = river ? 'river-cfr' : continuation ? 'continuation-cfr' : 'range-equity';
       action = river ?? continuation ?? this.postflop(s, hole, eq, ownCommitted);
     }
+    if (this.options.riverSafety && action.action === 'fold' && board.length === 5 && s.toCall > 0
+      && s.validActions.includes('call') && unbeatableRiver(hole, board)) {
+      action = Action.call(); method = 'river-safety';
+    }
     action = legalize(s, action);
-    this.lastDecision = { ms: performance.now() - started, method, equity: eq, action: action.action };
+    const call = Math.min(s.toCall, s.yourStack), contestable = s.pot - Math.max(0, s.toCall - s.yourStack);
+    this.lastDecision = { ms: performance.now() - started, method, equity: eq, action: action.action,
+      pot: s.pot, call, callPrice: call / Math.max(1, contestable + call),
+      callEV: eq === undefined ? undefined : eq * (contestable + call) - call };
     if (this.options.log) console.log(JSON.stringify({ type: 'decision', variant: this.options.variant, match: this.matchId, hand: s.handNumber, phase: s.phase, ...this.lastDecision, amount: action.amount }));
     return action;
   }
