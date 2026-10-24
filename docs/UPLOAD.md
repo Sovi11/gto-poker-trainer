@@ -87,4 +87,3 @@ The open-tournament list contained three events when checked on October 24:
 
 The Scheduled filter showed no scheduled tournaments. No additional compatible
 open event was available, and no recurring registration was configured.
-
