@@ -65,3 +65,26 @@ under the published resource limits. Platform validation remains the final
 check of compatibility with its actual executor and seccomp profile.
 
 Strategy evidence and limits: [CHIPZEN-VALIDATION.md](CHIPZEN-VALIDATION.md).
+
+## Second hosted bot uploaded October 24, 2026
+
+[ALLIN-v2](https://chipzen.ai/bots/c8a537d2-2746-44e1-ad8b-49bfed7b1aec)
+was uploaded separately from ALLIN-Hybrid. Chipzen completed automatic review and reports **ACTIVE**, with rating 1500 and zero matches.
+This is the tested river-safety revision, not a newly trained replacement model.
+
+- Source: `7e8582d1e382cdda222a8b9d469533505cb53f5d`
+- Successful image workflow: https://github.com/Sovi11/gto-poker-trainer/actions/runs/40029391478
+- Archive SHA256: `a6e36e773fcc480c13889bed44232f5d002dafaa8e0fe81f9775ef5850fb76d6`
+- Local archive: ignored `artifacts/release-v2/allin-chipzen-linux-amd64.tar.gz`
+
+The open-tournament list contained three events when checked on October 24:
+
+| Event | Entry status / compatibility |
+|---|---|
+| [Daily Upload bracket II](https://chipzen.ai/tournament/75bf4f69-078c-4369-a574-1ea2e7d5a0e4) | ALLIN-Hybrid already entered. Starts 21:30 IST. One bot per developer; existing entry preserved. |
+| [Daily Remote bracket II](https://chipzen.ai/tournament/192adc71-1850-4e8e-9054-fb865eb466af) | Remote-only; the uploaded v2 bot is ineligible. Existing ALLIN needs an external runner kept online. No entry submitted. |
+| [Daily 6-Max Sit & Go II](https://chipzen.ai/tournament/9ee3f0d9-cef1-4bde-8d9b-8c3c62ae87ed) | Multiplayer, with a $10 winner prize. Current strategy supports heads-up only. No entry submitted. |
+
+The Scheduled filter showed no scheduled tournaments. No additional compatible
+open event was available, and no recurring registration was configured.
+
